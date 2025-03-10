@@ -1,0 +1,87 @@
+.followers-container {
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.followers-stats {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 30px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.followers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.follower-item {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.follower-item:hover {
+  transform: translateY(-2px);
+}
+
+.profile-picture {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 15px;
+}
+
+.follower-info {
+  flex: 1;
+}
+
+.follower-info h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.follower-info p {
+  margin: 5px 0 0;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.follow-button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.follow-button:not(.following) {
+  background-color: #007bff;
+  color: white;
+}
+
+.follow-button:not(.following):hover {
+  background-color: #0056b3;
+}
+
+.follow-button.following {
+  background-color: #e9ecef;
+  color: #495057;
+}
+
+.follow-button.following:hover {
+  background-color: #dc3545;
+  color: white;
+} 

@@ -14,7 +14,11 @@ export interface AuthResponse {
  */
 export const loginUser = async (email: string, password: string): Promise<AuthResponse> => {
   const response = await axios.post<AuthResponse>(
-    `${API_URL}/api/Login?email=${email}&password=${password}`
+    `${API_URL}/api/Login`,
+    {
+      email,
+      password
+    }
   );
 
   // שמירת ה-Token בלוקאל סטורג'

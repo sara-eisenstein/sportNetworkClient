@@ -1,11 +1,13 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { loginUser, logoutUser, getToken, AuthResponse } from "../../services/authService";
+import { UserDto } from "../../models/user";
 
 // מבנה הנתונים של סטייט המשתמשים
 interface AuthState {
   token: string | null;
   loading: boolean;
   error: string | null;
+  currentUser: UserDto | null;
 }
 
 // סטייט ראשוני
@@ -13,6 +15,7 @@ const initialState: AuthState = {
   token: getToken(),
   loading: false,
   error: null,
+  currentUser: null,
 };
 
 // פעולה אסינכרונית להתחברות
@@ -46,6 +49,7 @@ const authSlice = createSlice({
       .addCase(login.fulfilled, (state, action: PayloadAction<string>) => {
         state.loading = false;
         state.token = action.payload;
+        // You'll need to fetch the current user here or in a separate thunk
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
