@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Follower, FollowerStats } from "../models/follower";
+import {  FollowerStats } from "../models/follower";
 import { UserDto } from "../models/user";
 
 const API_URL = process.env.REACT_APP_API_URL;
