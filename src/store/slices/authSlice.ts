@@ -1,63 +1,121 @@
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import { loginUser, logoutUser, getToken, AuthResponse } from "../../services/authService";
-import { UserDto } from "../../models/user";
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios';
+import { LoginDto, AuthResponse } from '../../models/auth';
 
-// מבנה הנתונים של סטייט המשתמשים
-interface AuthState {
-  token: string | null;
-  loading: boolean;
-  error: string | null;
-  currentUser: UserDto | null;
+interface User {
+    userId: number;
+    firstName: string;
+    email: string;
+    profilePicture?: string;
 }
 
-// סטייט ראשוני
+interface AuthState {
+    currentUser: User | null;
+    token: string | null;
+    loading: boolean;
+    error: string | null;
+}
+
 const initialState: AuthState = {
-  token: getToken(),
-  loading: false,
-  error: null,
-  currentUser: null,
+    currentUser: null,
+    token: localStorage.getItem('token'),
+    loading: false,
+    error: null
 };
 
-// פעולה אסינכרונית להתחברות
-export const login = createAsyncThunk(
-  "auth/login",
-  async ({ email, password }: { email: string; password: string }, thunkAPI) => {
+function parseJwt(token: string) {
     try {
-      const response: AuthResponse = await loginUser(email, password);
-      return response.token;
-    } catch (error) {
-      return thunkAPI.rejectWithValue("Login failed. Please check your credentials.");
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+
+        return JSON.parse(jsonPayload);
+    } catch (e) {
+        console.error('Error parsing JWT:', e);
+        return null;
     }
-  }
+}
+
+export const login = createAsyncThunk(
+    'auth/login',
+    async (credentials: LoginDto, { rejectWithValue }) => {
+        try {
+            console.log('Attempting login...', process.env.REACT_APP_API_URL);
+            const response = await axios.post<AuthResponse>(
+                `${process.env.REACT_APP_API_URL}/api/Login`,
+                credentials
+            );
+            
+            console.log('Login response:', response.data);
+            const token = response.data.token;
+            
+            // שמירת הטוקן ב-localStorage
+            localStorage.setItem('token', token);
+
+            // פענוח הטוקן לקבלת פרטי המשתמש
+            const tokenData = parseJwt(token);
+            console.log('Token data:', tokenData);
+
+            if (!tokenData) {
+                return rejectWithValue('שגיאה בפענוח פרטי המשתמש');
+            }
+
+            const user: User = {
+                userId: parseInt(tokenData['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier']),
+                firstName: tokenData['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'],
+                email: tokenData['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress']
+            };
+
+            return {
+                token,
+                user
+            };
+        } catch (error: any) {
+            console.error('Login error:', error);
+            console.error('Error response:', error.response?.data);
+            if (axios.isAxiosError(error)) {
+                return rejectWithValue(
+                    error.response?.data?.message || 'שם משתמש או סיסמה שגויים'
+                );
+            }
+            return rejectWithValue('שגיאה בהתחברות');
+        }
+    }
 );
 
-// Slice לניהול התחברות
 const authSlice = createSlice({
-  name: "auth",
-  initialState,
-  reducers: {
-    logout: (state) => {
-      logoutUser();
-      state.token = null;
+    name: 'auth',
+    initialState,
+    reducers: {
+        logout: (state) => {
+            state.currentUser = null;
+            state.token = null;
+            localStorage.removeItem('token');
+        }
     },
-  },
-  extraReducers: (builder) => {
-    builder
-      .addCase(login.pending, (state) => {
-        state.loading = true;
-      })
-      .addCase(login.fulfilled, (state, action: PayloadAction<string>) => {
-        state.loading = false;
-        state.token = action.payload;
-        // You'll need to fetch the current user here or in a separate thunk
-      })
-      .addCase(login.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-      });
-  },
+    extraReducers: (builder) => {
+        builder
+            .addCase(login.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(login.fulfilled, (state, action) => {
+                state.loading = false;
+                state.currentUser = action.payload.user;
+                state.token = action.payload.token;
+                state.error = null;
+            })
+            .addCase(login.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string || 'שגיאה בהתחברות';
+                state.currentUser = null;
+                state.token = null;
+                localStorage.removeItem('token');
+            });
+    }
 });
 
-// ייצוא הפעולות
 export const { logout } = authSlice.actions;
 export default authSlice.reducer;
