@@ -1,0 +1,153 @@
+.home-page {
+    min-height: 100vh;
+    background-color: #f0f2f5;
+    padding: 20px;
+}
+
+.home-header {
+    max-width: 1200px;
+    margin: 0 auto 32px;
+    text-align: center;
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.home-header h1 {
+    color: #1a237e;
+    margin-bottom: 16px;
+    font-size: 2em;
+}
+
+.welcome-message {
+    color: #666;
+    font-size: 1.2em;
+}
+
+.guest-message {
+    color: #666;
+    font-size: 1.2em;
+    margin: 20px 0;
+}
+
+.login-link {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 8px 16px;
+    background-color: #1a237e;
+    color: white;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.login-link:hover {
+    background-color: #151b4f;
+}
+
+.home-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 24px;
+}
+
+.main-content {
+    background-color: transparent;
+}
+
+.side-content {
+    background-color: transparent;
+}
+
+.posts-section h2,
+.challenges-section h2,
+.login-prompt h2 {
+    color: #1a237e;
+    margin-bottom: 16px;
+    font-size: 1.5em;
+    padding: 0 20px;
+}
+
+.login-prompt {
+    background-color: white;
+    padding: 24px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.login-prompt p {
+    color: #666;
+    margin-bottom: 20px;
+    padding: 0 20px;
+}
+
+.features-list {
+    list-style: none;
+    padding: 0 20px;
+    margin-bottom: 24px;
+}
+
+.features-list li {
+    color: #444;
+    margin-bottom: 12px;
+    padding-right: 24px;
+    position: relative;
+}
+
+.features-list li:before {
+    content: "✓";
+    position: absolute;
+    right: 0;
+    color: #4caf50;
+}
+
+.login-button {
+    display: block;
+    width: calc(100% - 40px);
+    margin: 0 20px;
+    padding: 12px;
+    background-color: #1a237e;
+    color: white;
+    text-align: center;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.login-button:hover {
+    background-color: #151b4f;
+}
+
+/* רספונסיביות */
+@media (max-width: 1024px) {
+    .home-content {
+        grid-template-columns: 1fr;
+    }
+
+    .side-content {
+        order: -1;
+    }
+}
+
+@media (max-width: 768px) {
+    .home-page {
+        padding: 10px;
+    }
+
+    .home-header {
+        padding: 16px;
+        margin-bottom: 20px;
+    }
+
+    .home-header h1 {
+        font-size: 1.5em;
+    }
+
+    .welcome-message,
+    .guest-message {
+        font-size: 1em;
+    }
+} 
