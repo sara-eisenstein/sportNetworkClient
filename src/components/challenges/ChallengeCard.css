@@ -1,0 +1,178 @@
+.challenge-card {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.challenge-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.creator-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-left: 12px;
+}
+
+.challenge-info {
+    flex-grow: 1;
+}
+
+.creator-name {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.challenge-status {
+    font-size: 0.9em;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.status-active {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+.status-completed {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.status-failed {
+    background-color: #ffebee;
+    color: #c62828;
+}
+
+.delete-button {
+    padding: 4px 8px;
+    background-color: transparent;
+    border: 1px solid #dc3545;
+    color: #dc3545;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.challenge-title {
+    margin: 0 0 8px 0;
+    font-size: 1.2em;
+}
+
+.challenge-description {
+    margin: 0 0 16px 0;
+    color: #666;
+    line-height: 1.5;
+}
+
+.challenge-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.detail-label {
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.progress-section {
+    margin-bottom: 16px;
+}
+
+.progress-bar {
+    height: 8px;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: #4caf50;
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    font-size: 0.9em;
+    color: #666;
+}
+
+.update-progress {
+    margin-bottom: 16px;
+}
+
+.progress-update-form {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.progress-update-form input {
+    width: 100px;
+    padding: 4px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.progress-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.progress-actions button {
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.progress-actions button:first-child {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+}
+
+.progress-actions button:last-child {
+    background-color: transparent;
+    border: 1px solid #ddd;
+}
+
+.participation-button {
+    width: 100%;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-bottom: 12px;
+    background-color: #1976d2;
+    color: white;
+    border: none;
+    font-weight: bold;
+}
+
+.participation-button.participating {
+    background-color: #dc3545;
+}
+
+.participation-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.participants-count {
+    text-align: center;
+    font-size: 0.9em;
+    color: #666;
+} 
