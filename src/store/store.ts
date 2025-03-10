@@ -6,6 +6,7 @@ import userReducer from "./slices/userSlice";
 import commentReducer from "./slices/commentSlice";
 import postReducer from "./slices/postSlice";
 import challengeReducer from "./slices/challengeSlice";
+import challengeParticipantReducer from "./slices/challengeParticipantSlice";
 
 export const store = configureStore({
   reducer: {
@@ -15,7 +16,8 @@ export const store = configureStore({
     follower: followerReducer,
     comments: commentReducer,
     posts: postReducer,
-    challenges: challengeReducer
+    challenges: challengeReducer,
+    challengeParticipants: challengeParticipantReducer
   },
 });
 
