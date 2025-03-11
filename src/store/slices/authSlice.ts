@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { LoginDto, AuthResponse } from '../../models/auth';
+import { LoginDto, RegisterDto, AuthResponse } from '../../models/auth';
 
 interface User {
     userId: number;
@@ -14,13 +14,15 @@ interface AuthState {
     token: string | null;
     loading: boolean;
     error: string | null;
+    shouldRegister: boolean;
 }
 
 const initialState: AuthState = {
     currentUser: null,
     token: localStorage.getItem('token'),
     loading: false,
-    error: null
+    error: null,
+    shouldRegister: false
 };
 
 function parseJwt(token: string) {
@@ -59,7 +61,7 @@ export const login = createAsyncThunk(
             console.log('Token data:', tokenData);
 
             if (!tokenData) {
-                return rejectWithValue('שגיאה בפענוח פרטי המשתמש');
+                return rejectWithValue({ message: 'שגיאה בפענוח פרטי המשתמש', shouldRegister: false });
             }
 
             const user: User = {
@@ -75,12 +77,62 @@ export const login = createAsyncThunk(
         } catch (error: any) {
             console.error('Login error:', error);
             console.error('Error response:', error.response?.data);
-            if (axios.isAxiosError(error)) {
-                return rejectWithValue(
-                    error.response?.data?.message || 'שם משתמש או סיסמה שגויים'
-                );
+            
+            // בדיקה אם המשתמש לא קיים
+            if (error.response?.status === 401 && 
+                (error.response?.data?.includes('User does not exist') || 
+                error.response?.data?.includes('משתמש לא קיים'))) {
+                return rejectWithValue({ 
+                    message: 'משתמש לא קיים במערכת', 
+                    shouldRegister: true 
+                });
             }
-            return rejectWithValue('שגיאה בהתחברות');
+
+            if (axios.isAxiosError(error)) {
+                return rejectWithValue({
+                    message: error.response?.data?.message || 'שם משתמש או סיסמה שגויים',
+                    shouldRegister: false
+                });
+            }
+            return rejectWithValue({ message: 'שגיאה בהתחברות', shouldRegister: false });
+        }
+    }
+);
+
+export const register = createAsyncThunk(
+    'auth/register',
+    async (registerData: RegisterDto, { rejectWithValue }) => {
+        try {
+            console.log('Attempting registration with URL:', `${process.env.REACT_APP_API_URL}/api/auth/register`);
+            console.log('Registration data:', registerData);
+            
+            const response = await axios.post(
+                `${process.env.REACT_APP_API_URL}/api/auth/register`,
+                registerData
+            );
+
+            console.log('Registration response:', response.data);
+            
+            if (response.data.token) {
+                localStorage.setItem('token', response.data.token);
+                return response.data;
+            } else {
+                return rejectWithValue('No token received from server');
+            }
+        } catch (error: any) {
+            console.error('Registration error details:', error.response?.data || error.message);
+            console.error('Full error object:', error);
+            
+            if (error.response) {
+                // Server responded with an error
+                return rejectWithValue(error.response.data?.message || 'Registration failed');
+            } else if (error.request) {
+                // Request was made but no response received
+                return rejectWithValue('No response from server. Please check your connection.');
+            } else {
+                // Error in request setup
+                return rejectWithValue('Error setting up the request');
+            }
         }
     }
 );
@@ -92,7 +144,11 @@ const authSlice = createSlice({
         logout: (state) => {
             state.currentUser = null;
             state.token = null;
+            state.shouldRegister = false;
             localStorage.removeItem('token');
+        },
+        clearShouldRegister: (state) => {
+            state.shouldRegister = false;
         }
     },
     extraReducers: (builder) => {
@@ -100,22 +156,39 @@ const authSlice = createSlice({
             .addCase(login.pending, (state) => {
                 state.loading = true;
                 state.error = null;
+                state.shouldRegister = false;
             })
             .addCase(login.fulfilled, (state, action) => {
                 state.loading = false;
                 state.currentUser = action.payload.user;
                 state.token = action.payload.token;
                 state.error = null;
+                state.shouldRegister = false;
             })
             .addCase(login.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload as string || 'שגיאה בהתחברות';
+                const payload = action.payload as { message: string; shouldRegister: boolean };
+                state.error = payload.message;
+                state.shouldRegister = payload.shouldRegister;
                 state.currentUser = null;
                 state.token = null;
                 localStorage.removeItem('token');
+            })
+            .addCase(register.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(register.fulfilled, (state, action) => {
+                state.loading = false;
+                state.currentUser = action.payload.user;
+                state.error = null;
+            })
+            .addCase(register.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string || 'Registration failed';
             });
     }
 });
 
-export const { logout } = authSlice.actions;
+export const { logout, clearShouldRegister } = authSlice.actions;
 export default authSlice.reducer;

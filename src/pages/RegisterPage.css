@@ -1,4 +1,4 @@
-.login-page {
+.register-page {
     min-height: 100vh;
     display: flex;
     align-items: center;
@@ -7,16 +7,16 @@
     padding: 20px;
 }
 
-.login-container {
+.register-container {
     background-color: white;
     padding: 32px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     width: 100%;
-    max-width: 400px;
+    max-width: 500px;
 }
 
-.login-container h2 {
+.register-container h2 {
     text-align: center;
     color: #1a237e;
     margin-bottom: 24px;
@@ -32,6 +32,13 @@
 }
 
 .form-group {
+    margin-bottom: 16px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
     margin-bottom: 16px;
 }
 
@@ -55,7 +62,7 @@
     box-shadow: 0 0 0 2px rgba(26,35,126,0.2);
 }
 
-.login-container button {
+.register-container button {
     width: 100%;
     padding: 12px;
     background-color: #1a237e;
@@ -68,55 +75,40 @@
     transition: background-color 0.2s;
 }
 
-.login-container button:hover {
+.register-container button:hover {
     background-color: #151b4f;
 }
 
-.login-container button:disabled {
+.register-container button:disabled {
     background-color: #ccc;
     cursor: not-allowed;
 }
 
-.register-link {
-    margin-top: 10px;
-    text-align: center;
-}
-
-.register-link a {
-    color: #007bff;
-    text-decoration: none;
-    font-weight: 500;
-}
-
-.register-link a:hover {
-    text-decoration: underline;
-}
-
-.register-section {
+.login-section {
     margin-top: 20px;
     text-align: center;
-    padding: 15px;
+    padding-top: 15px;
     border-top: 1px solid #eee;
 }
 
-.register-section p {
+.login-section p {
     margin-bottom: 10px;
     color: #666;
 }
 
-.register-button {
-    display: inline-block;
-    padding: 8px 20px;
-    background-color: #28a745;
-    color: white;
+.login-link {
+    color: #1a237e;
     text-decoration: none;
-    border-radius: 4px;
     font-weight: 500;
-    transition: background-color 0.2s;
 }
 
-.register-button:hover {
-    background-color: #218838;
-    color: white;
-    text-decoration: none;
+.login-link:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
 } 

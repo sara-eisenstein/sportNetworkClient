@@ -18,6 +18,40 @@ const PostCard: React.FC<Props> = ({ post, isOwnPost = false }) => {
     const [showComments, setShowComments] = useState(false);
     const [selectedImage, setSelectedImage] = useState<File | null>(null);
 
+    const getFullImageUrl = (imageUrl: string | undefined) => {
+        if (!imageUrl) {
+            console.log('No image URL provided');
+            return undefined;
+        }
+        
+        console.log('Processing image URL:', imageUrl);
+        
+        if (imageUrl.startsWith('http')) {
+            console.log('Using absolute URL:', imageUrl);
+            return imageUrl;
+        }
+
+        // Add authorization header for image requests
+        const token = localStorage.getItem("token");
+        if (imageUrl.includes('PostImages')) {
+            const postId = post.postId;
+            const fullUrl = `${process.env.REACT_APP_API_URL}/api/Post/getPostImage/${postId}`;
+            console.log('Constructed post image URL:', {
+                postId,
+                fullUrl,
+                token: token ? 'Present' : 'Missing'
+            });
+            return fullUrl;
+        }
+        
+        const fullUrl = `${process.env.REACT_APP_API_URL}${imageUrl}`;
+        console.log('Constructed general image URL:', {
+            fullUrl,
+            token: token ? 'Present' : 'Missing'
+        });
+        return fullUrl;
+    };
+
     const handleDelete = () => {
         if (window.confirm('האם אתה בטוח שברצונך למחוק פוסט זה?')) {
             dispatch(removePost(post.postId!));
@@ -51,9 +85,13 @@ const PostCard: React.FC<Props> = ({ post, isOwnPost = false }) => {
         <div className="post-card">
             <div className="post-header">
                 <img 
-                    src={post.userProfilePicture || '/default-avatar.png'} 
+                    src={getFullImageUrl(post.userProfilePicture) || '/default-avatar.png'} 
                     alt={post.userName} 
                     className="user-avatar"
+                    onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = '/default-avatar.png';
+                    }}
                 />
                 <div className="post-info">
                     <span className="user-name">{post.userName}</span>
@@ -90,11 +128,32 @@ const PostCard: React.FC<Props> = ({ post, isOwnPost = false }) => {
                 <>
                     <p className="post-content">{post.content}</p>
                     {post.imageUrl && (
-                        <img 
-                            src={post.imageUrl} 
-                            alt="תמונת פוסט" 
-                            className="post-image"
-                        />
+                        <>
+                            <p className="debug-info" style={{ fontSize: '12px', color: '#666' }}>
+                                Debug - Image URL: {post.imageUrl}<br/>
+                                Full URL: {getFullImageUrl(post.imageUrl)}<br/>
+                                Post ID: {post.postId}
+                            </p>
+                            <img 
+                                src={getFullImageUrl(post.imageUrl)} 
+                                alt="תמונת פוסט" 
+                                className="post-image"
+                                onError={(e) => {
+                                    console.error('Failed to load post image:', {
+                                        postId: post.postId,
+                                        originalUrl: post.imageUrl,
+                                        fullUrl: getFullImageUrl(post.imageUrl),
+                                        error: e,
+                                        errorTarget: e.target,
+                                        headers: {
+                                            auth: localStorage.getItem("token") ? 'Present' : 'Missing'
+                                        }
+                                    });
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                }}
+                            />
+                        </>
                     )}
                 </>
             )}
