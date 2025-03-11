@@ -10,6 +10,8 @@ import {
     unlikePost
 } from "../../services/postService";
 
+
+
 interface PostState {
     posts: Post[];
     userPosts: Post[];
@@ -84,14 +86,14 @@ export const removePost = createAsyncThunk(
 
 export const toggleLike = createAsyncThunk(
     "posts/toggleLike",
-    async ({ postId, isLiked }: { postId: number; isLiked: boolean }, thunkAPI) => {
+    async ({ postId, userId, isLiked }: { postId: number; userId: number; isLiked: boolean }, thunkAPI) => {
         try {
             if (isLiked) {
-                await unlikePost(postId);
+                await unlikePost(postId, userId);
             } else {
-                await likePost(postId);
+                await likePost(postId, userId);
             }
-            return { postId, isLiked: !isLiked };
+            return { postId, userId, isLiked: !isLiked };
         } catch (error) {
             return thunkAPI.rejectWithValue("Failed to toggle like");
         }

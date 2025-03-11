@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { AppDispatch } from '../../store/store';
 import { removePost, toggleLike, editPost } from '../../store/slices/postSlice';
 import { Post } from '../../models/post';
 import CommentList from '../comments/CommentList';
+import { getPostImage } from '../../services/postService';
+import { getUserImage } from '../../services/userService';
 import './PostCard.css';
 
 interface Props {
@@ -17,40 +19,64 @@ const PostCard: React.FC<Props> = ({ post, isOwnPost = false }) => {
     const [editContent, setEditContent] = useState(post.content);
     const [showComments, setShowComments] = useState(false);
     const [selectedImage, setSelectedImage] = useState<File | null>(null);
+    const [postImageUrl, setPostImageUrl] = useState<string>('');
+    const [userProfileImageUrl, setUserProfileImageUrl] = useState<string>('');
 
-    const getFullImageUrl = (imageUrl: string | undefined) => {
-        if (!imageUrl) {
-            console.log('No image URL provided');
-            return undefined;
-        }
-        
-        console.log('Processing image URL:', imageUrl);
-        
-        if (imageUrl.startsWith('http')) {
-            console.log('Using absolute URL:', imageUrl);
-            return imageUrl;
+    useEffect(() => {
+        // טעינת תמונת הפוסט
+        if (post.postId) {
+            console.log('🔄 Loading image for post:', post.postId);
+            getPostImage(post.postId)
+                .then(url => {
+                    console.log('✅ Image loaded successfully:', url);
+                    setPostImageUrl(url);
+                })
+                .catch(error => {
+                    console.error('❌ Failed to load image:', error);
+                    setPostImageUrl('/no-image-placeholder.png');
+                });
         }
 
-        // Add authorization header for image requests
-        const token = localStorage.getItem("token");
-        if (imageUrl.includes('PostImages')) {
-            const postId = post.postId;
-            const fullUrl = `${process.env.REACT_APP_API_URL}/api/Post/getPostImage/${postId}`;
-            console.log('Constructed post image URL:', {
-                postId,
-                fullUrl,
-                token: token ? 'Present' : 'Missing'
-            });
-            return fullUrl;
+        // טעינת תמונת הפרופיל של המשתמש
+        if (post.userId) {
+            console.log('🔄 Loading profile image for user:', post.userId);
+            getUserImage(post.userId)
+                .then(profileImageUrl => {
+                    if (!profileImageUrl) {
+                        throw new Error('No profile image URL returned');
+                    }
+                    console.log('✅ Profile image URL set:', profileImageUrl);
+                    setUserProfileImageUrl(profileImageUrl);
+                })
+                .catch(error => {
+                    console.error('❌ Failed to fetch profile image:', {
+                        userId: post.userId,
+                        error: error.message
+                    });
+                    setUserProfileImageUrl('/default-avatar.png');
+                });
         }
-        
-        const fullUrl = `${process.env.REACT_APP_API_URL}${imageUrl}`;
-        console.log('Constructed general image URL:', {
-            fullUrl,
-            token: token ? 'Present' : 'Missing'
-        });
-        return fullUrl;
-    };
+
+        // ניקוי URLs כשהקומפוננטה מתפרקת
+        return () => {
+            if (postImageUrl && postImageUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(postImageUrl);
+            }
+            if (userProfileImageUrl && userProfileImageUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(userProfileImageUrl);
+            }
+        };
+    }, [post.postId, post.userId]);
+
+    // הוספת לוג בזמן רינדור
+    console.log('🎨 Rendering post:', {
+        postId: post.postId,
+        userId: post.userId,
+        hasImage: !!post.postId,
+        postImageUrl,
+        userProfileImageUrl,
+        userName: post.userName
+    });
 
     const handleDelete = () => {
         if (window.confirm('האם אתה בטוח שברצונך למחוק פוסט זה?')) {
@@ -59,7 +85,12 @@ const PostCard: React.FC<Props> = ({ post, isOwnPost = false }) => {
     };
 
     const handleLike = () => {
-        dispatch(toggleLike({ postId: post.postId!, isLiked: post.isLiked || false }));
+        const userId = localStorage.getItem("userId");
+        if (!userId) {
+            console.error("❌ User ID is missing! Cannot toggle like.");
+            return;
+        }
+        dispatch(toggleLike({ postId: post.postId!, userId: Number(userId), isLiked: post.isLiked || false }));
     };
 
     const handleEdit = () => {
@@ -85,12 +116,18 @@ const PostCard: React.FC<Props> = ({ post, isOwnPost = false }) => {
         <div className="post-card">
             <div className="post-header">
                 <img 
-                    src={getFullImageUrl(post.userProfilePicture) || '/default-avatar.png'} 
-                    alt={post.userName} 
+                    src={userProfileImageUrl || '/default-avatar.png'} 
+                    alt={post.userName || "Unknown User"} 
                     className="user-avatar"
                     onError={(e) => {
                         const target = e.target as HTMLImageElement;
-                        target.src = '/default-avatar.png';
+                        if (target.src !== `${window.location.origin}/default-avatar.png`) {
+                            console.error('Failed to load profile image:', {
+                                userId: post.userId,
+                                url: target.src
+                            });
+                            target.src = '/default-avatar.png';
+                        }
                     }}
                 />
                 <div className="post-info">
@@ -127,33 +164,20 @@ const PostCard: React.FC<Props> = ({ post, isOwnPost = false }) => {
             ) : (
                 <>
                     <p className="post-content">{post.content}</p>
-                    {post.imageUrl && (
-                        <>
-                            <p className="debug-info" style={{ fontSize: '12px', color: '#666' }}>
-                                Debug - Image URL: {post.imageUrl}<br/>
-                                Full URL: {getFullImageUrl(post.imageUrl)}<br/>
-                                Post ID: {post.postId}
-                            </p>
-                            <img 
-                                src={getFullImageUrl(post.imageUrl)} 
-                                alt="תמונת פוסט" 
-                                className="post-image"
-                                onError={(e) => {
-                                    console.error('Failed to load post image:', {
-                                        postId: post.postId,
-                                        originalUrl: post.imageUrl,
-                                        fullUrl: getFullImageUrl(post.imageUrl),
-                                        error: e,
-                                        errorTarget: e.target,
-                                        headers: {
-                                            auth: localStorage.getItem("token") ? 'Present' : 'Missing'
-                                        }
-                                    });
-                                    const target = e.target as HTMLImageElement;
-                                    target.style.display = 'none';
-                                }}
-                            />
-                        </>
+                    {post.postId && postImageUrl && (
+                        <img 
+                            src={postImageUrl}
+                            alt="תמונת פוסט" 
+                            className="post-image"
+                            onError={(e) => {
+                                console.error('Failed to load post image:', {
+                                    postId: post.postId,
+                                    error: e
+                                });
+                                const target = e.target as HTMLImageElement;
+                                target.src = '/no-image-placeholder.png';
+                            }}
+                        />
                     )}
                 </>
             )}
@@ -180,4 +204,4 @@ const PostCard: React.FC<Props> = ({ post, isOwnPost = false }) => {
     );
 };
 
-export default PostCard; 
+export default PostCard;

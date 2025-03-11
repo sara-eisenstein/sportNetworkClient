@@ -1,13 +1,17 @@
 import axios from "axios";
 import { UserDto } from "../models/user";
 
-const API_URL = process.env.REACT_APP_API_URL ;
+const API_URL = process.env.REACT_APP_API_URL;
 
 /**
  * מביא את כל המשתמשים
  */
 export const getUsers = async (): Promise<UserDto[]> => {
-  const response = await axios.get<UserDto[]>(`${API_URL}`);
+  const response = await axios.get<UserDto[]>(`${API_URL}/api/User`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
   return response.data;
 };
 
@@ -15,7 +19,7 @@ export const getUsers = async (): Promise<UserDto[]> => {
  * מביא משתמש לפי ID
  */
 export const getUserById = async (id: number): Promise<UserDto> => {
-  const response = await axios.get<UserDto>(`${API_URL}/${id}`, {
+  const response = await axios.get<UserDto>(`${API_URL}/api/User/${id}`, {
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
@@ -27,7 +31,11 @@ export const getUserById = async (id: number): Promise<UserDto> => {
  * הוספת משתמש חדש
  */
 export const createUser = async (userData: FormData): Promise<string> => {
-  const response = await axios.post(`${API_URL}`, userData);
+  const response = await axios.post(`${API_URL}/api/User`, userData, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
   return response.data;
 };
 
@@ -35,7 +43,7 @@ export const createUser = async (userData: FormData): Promise<string> => {
  * עדכון משתמש קיים
  */
 export const updateUser = async (id: number, userData: FormData): Promise<string> => {
-  const response = await axios.put(`${API_URL}/${id}`, userData, {
+  const response = await axios.put(`${API_URL}/api/User/${id}`, userData, {
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
@@ -47,5 +55,49 @@ export const updateUser = async (id: number, userData: FormData): Promise<string
  * מביא תמונת פרופיל של משתמש
  */
 export const getUserImage = async (id: number): Promise<string> => {
-  return `${process.env.REACT_APP_API_URL}/getUserImage/${id}`;
+    try {
+        console.log(`🔄 Fetching profile image for user ${id} from ${API_URL}/getUserImage/${id}`);
+        
+        const response = await axios.get(`${API_URL}/getUserImage/${id}`, {
+            responseType: 'blob'
+        }).catch(error => {
+            console.error('Network error details:', {
+                status: error.response?.status,
+                statusText: error.response?.statusText,
+                headers: error.response?.headers,
+                url: error.config?.url
+            });
+            throw error;
+        });
+
+        console.log('Response headers:', response.headers);
+        console.log('Response status:', response.status);
+        console.log('Response type:', response.data.type);
+
+        if (!response.data || response.data.size === 0) {
+            console.warn(`Empty image data received for user ${id}`);
+            return '/default-avatar.png';
+        }
+
+        // בדיקה שהתגובה היא אכן תמונה
+        const contentType = response.headers['content-type'];
+        if (!contentType || !contentType.startsWith('image/')) {
+            console.warn(`Invalid content type for user ${id}: ${contentType}`);
+            return '/default-avatar.png';
+        }
+
+        // יצירת URL מקומי לתמונה
+        const imageUrl = URL.createObjectURL(response.data);
+        console.log(`✅ Profile image URL created for user ${id}:`, imageUrl);
+        return imageUrl;
+    } catch (error: any) {
+        console.error(`❌ Failed to fetch profile image for user ${id}:`, {
+            error: error.message,
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            contentType: error.response?.headers?.['content-type'],
+            url: error.config?.url
+        });
+        return '/default-avatar.png';
+    }
 };
