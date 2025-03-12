@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { register } from '../store/slices/authSlice';
 import { AppDispatch, RootState } from '../store/store';
+import { RegisterDto } from '../models/auth';
 import './RegisterPage.css';
 
 const RegisterPage: React.FC = () => {
@@ -13,12 +14,16 @@ const RegisterPage: React.FC = () => {
     
     const [formData, setFormData] = useState({
         email: location.state?.email || '',
-        password: '',
+        passwordHash: '',
         confirmPassword: '',
         firstName: '',
         lastName: '',
-        phoneNumber: ''
+        phoneNumber: '',
+        bio: '',
+        goals: ''
     });
+    const [profilePicture, setProfilePicture] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [error, setError] = useState('');
 
     // מקבל את המיקום המקורי מה-state, אם קיים
@@ -31,47 +36,62 @@ const RegisterPage: React.FC = () => {
         }
     }, [currentUser, navigate, from]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value
+        });
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setProfilePicture(file);
+            setPreviewUrl(URL.createObjectURL(file));
+        }
     };
 
     const validateForm = () => {
-        if (!formData.email || !formData.password || !formData.confirmPassword || 
-            !formData.firstName || !formData.lastName) {
-            setError('נא למלא את כל שדות החובה');
-            return false;
+        if (!formData.email || !formData.passwordHash || !formData.firstName || !formData.lastName) {
+            return 'נא למלא את כל שדות החובה';
         }
-
-        if (formData.password !== formData.confirmPassword) {
-            setError('הסיסמאות אינן תואמות');
-            return false;
+        if (formData.passwordHash !== formData.confirmPassword) {
+            return 'הסיסמאות אינן תואמות';
         }
-
-        if (formData.password.length < 6) {
-            setError('הסיסמה חייבת להכיל לפחות 6 תווים');
-            return false;
+        if (formData.passwordHash.length < 6) {
+            return 'הסיסמה חייבת להכיל לפחות 6 תווים';
         }
-
-        return true;
+        if (!formData.bio || !formData.goals) {
+            return 'נא למלא את שדות הביוגרפיה והיעדים';
+        }
+        return null;
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError('');
+        console.log('Submitting registration form...');
 
-        if (!validateForm()) {
+        const validationError = validateForm();
+        if (validationError) {
+            console.error('Validation error:', validationError);
+            setError(validationError);
             return;
         }
 
         try {
-            console.log('Submitting registration form...');
-            const { confirmPassword, ...registerData } = formData;
-            const result = await dispatch(register(registerData)).unwrap();
-            console.log('Registration result:', result);
+            const registerData: RegisterDto = {
+                email: formData.email,
+                passwordHash: formData.passwordHash,
+                firstName: formData.firstName,
+                lastName: formData.lastName,
+                phoneNumber: formData.phoneNumber,
+                bio: formData.bio,
+                goals: formData.goals,
+                profilePicture: profilePicture || undefined
+            };
+
+            await dispatch(register(registerData)).unwrap();
+            navigate(location.state?.from?.pathname || '/');
         } catch (err) {
             console.error('Registration error:', err);
             setError('שגיאה בהרשמה. אנא נסה שוב.');
@@ -88,18 +108,6 @@ const RegisterPage: React.FC = () => {
                     </div>
                 )}
                 <form onSubmit={handleSubmit}>
-                    <div className="form-group">
-                        <label htmlFor="email">אימייל *</label>
-                        <input
-                            type="email"
-                            id="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            required
-                            disabled={loading}
-                        />
-                    </div>
                     <div className="form-row">
                         <div className="form-group">
                             <label htmlFor="firstName">שם פרטי *</label>
@@ -126,6 +134,47 @@ const RegisterPage: React.FC = () => {
                             />
                         </div>
                     </div>
+
+                    <div className="form-group">
+                        <label htmlFor="email">אימייל *</label>
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            required
+                            disabled={loading}
+                        />
+                    </div>
+
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label htmlFor="passwordHash">סיסמה *</label>
+                            <input
+                                type="password"
+                                id="passwordHash"
+                                name="passwordHash"
+                                value={formData.passwordHash}
+                                onChange={handleChange}
+                                required
+                                disabled={loading}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="confirmPassword">אימות סיסמה *</label>
+                            <input
+                                type="password"
+                                id="confirmPassword"
+                                name="confirmPassword"
+                                value={formData.confirmPassword}
+                                onChange={handleChange}
+                                required
+                                disabled={loading}
+                            />
+                        </div>
+                    </div>
+
                     <div className="form-group">
                         <label htmlFor="phoneNumber">מספר טלפון</label>
                         <input
@@ -137,39 +186,72 @@ const RegisterPage: React.FC = () => {
                             disabled={loading}
                         />
                     </div>
+
                     <div className="form-group">
-                        <label htmlFor="password">סיסמה *</label>
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            value={formData.password}
+                        <label htmlFor="profilePicture">תמונת פרופיל</label>
+                        <div className="profile-picture-upload">
+                            <input
+                                type="file"
+                                id="profilePicture"
+                                name="profilePicture"
+                                accept="image/*"
+                                onChange={handleFileChange}
+                                disabled={loading}
+                            />
+                            {previewUrl && (
+                                <div className="profile-picture-preview">
+                                    <img src={previewUrl} alt="תצוגה מקדימה" />
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setProfilePicture(null);
+                                            setPreviewUrl(null);
+                                        }}
+                                    >
+                                        הסר תמונה
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="form-group">
+                        <label htmlFor="bio">ספר/י לנו קצת על עצמך *</label>
+                        <textarea
+                            id="bio"
+                            name="bio"
+                            value={formData.bio}
                             onChange={handleChange}
+                            rows={3}
                             required
                             disabled={loading}
-                            minLength={6}
+                            placeholder="למשל: אני מתאמן/ת כבר שנתיים, אוהב/ת ריצה ויוגה..."
                         />
                     </div>
+
                     <div className="form-group">
-                        <label htmlFor="confirmPassword">אימות סיסמה *</label>
-                        <input
-                            type="password"
-                            id="confirmPassword"
-                            name="confirmPassword"
-                            value={formData.confirmPassword}
+                        <label htmlFor="goals">מה היעדים שלך? *</label>
+                        <textarea
+                            id="goals"
+                            name="goals"
+                            value={formData.goals}
                             onChange={handleChange}
+                            rows={3}
                             required
                             disabled={loading}
-                            minLength={6}
+                            placeholder="למשל: לרוץ חצי מרתון, לשפר את הכושר הכללי..."
                         />
                     </div>
+
                     <button type="submit" disabled={loading}>
                         {loading ? 'מבצע הרשמה...' : 'הרשם'}
                     </button>
                 </form>
                 <div className="login-section">
                     <p>כבר יש לך חשבון?</p>
-                    <Link to="/login" className="login-link">התחבר כאן</Link>
+                    <Link to="/login" state={{ from: location.state?.from }} className="login-link">
+                        התחבר עכשיו
+                    </Link>
                 </div>
             </div>
         </div>

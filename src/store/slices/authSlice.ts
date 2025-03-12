@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { LoginDto, RegisterDto, AuthResponse } from '../../models/auth';
 
@@ -19,7 +19,7 @@ interface AuthState {
 
 const initialState: AuthState = {
     currentUser: null,
-    token: localStorage.getItem('token'),
+    token: null,
     loading: false,
     error: null,
     shouldRegister: false
@@ -103,36 +103,87 @@ export const register = createAsyncThunk(
     'auth/register',
     async (registerData: RegisterDto, { rejectWithValue }) => {
         try {
-            console.log('Attempting registration with URL:', `${process.env.REACT_APP_API_URL}/api/auth/register`);
+            console.log('Attempting registration with URL:', `${process.env.REACT_APP_API_URL}/api/User`);
             console.log('Registration data:', registerData);
             
-            const response = await axios.post(
-                `${process.env.REACT_APP_API_URL}/api/auth/register`,
-                registerData
-            );
+            // Create user profile with all required details
+            const formData = new FormData();
+            formData.append('firstName', registerData.firstName);
+            formData.append('lastName', registerData.lastName);
+            formData.append('email', registerData.email);
+            formData.append('passwordHash', registerData.passwordHash);
+            formData.append('level', 'Beginner');
+            formData.append('goals', registerData.goals);
+            formData.append('bio', registerData.bio);
+            if (registerData.phoneNumber) {
+                formData.append('phoneNumber', registerData.phoneNumber);
+            }
+            if (registerData.profilePicture) {
+                formData.append('file', registerData.profilePicture);
+            }
 
+            const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/User`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
             console.log('Registration response:', response.data);
-            
-            if (response.data.token) {
-                localStorage.setItem('token', response.data.token);
-                return response.data;
-            } else {
-                return rejectWithValue('No token received from server');
-            }
+
+            // After successful registration, try to log in
+            const loginResponse = await axios.post(`${process.env.REACT_APP_API_URL}/api/Login`, {
+                email: registerData.email,
+                password: registerData.passwordHash
+            });
+
+            const token = loginResponse.data.token;
+            localStorage.setItem('token', token);
+
+            // Parse user details from token
+            const user = parseJwt(token);
+            return {
+                user,
+                token
+            };
         } catch (error: any) {
-            console.error('Registration error details:', error.response?.data || error.message);
-            console.error('Full error object:', error);
-            
-            if (error.response) {
-                // Server responded with an error
-                return rejectWithValue(error.response.data?.message || 'Registration failed');
-            } else if (error.request) {
-                // Request was made but no response received
-                return rejectWithValue('No response from server. Please check your connection.');
-            } else {
-                // Error in request setup
-                return rejectWithValue('Error setting up the request');
+            console.error('Registration error:', error);
+            if (axios.isAxiosError(error)) {
+                return rejectWithValue(error.response?.data || 'Registration failed');
             }
+            return rejectWithValue('Registration failed');
+        }
+    }
+);
+
+// פונקציה חדשה לשחזור הסשן
+export const restoreSession = createAsyncThunk(
+    'auth/restoreSession',
+    async (token: string, { rejectWithValue }) => {
+        try {
+            const decodedToken = parseJwt(token);
+            if (!decodedToken) {
+                localStorage.removeItem('token');
+                return rejectWithValue('Invalid token');
+            }
+
+            // הגדרת הטוקן בהדר הגלובלי של axios
+            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+            const user: User = {
+                userId: parseInt(decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier']),
+                firstName: decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'],
+                email: decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress']
+            };
+
+            console.log('Restored user from token:', user);
+
+            return {
+                token,
+                user
+            };
+        } catch (error) {
+            console.error('Failed to restore session:', error);
+            localStorage.removeItem('token');
+            return rejectWithValue('Failed to restore session');
         }
     }
 );
@@ -153,6 +204,22 @@ const authSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
+            // Restore Session
+            .addCase(restoreSession.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(restoreSession.fulfilled, (state, action) => {
+                state.loading = false;
+                state.currentUser = action.payload.user;
+                state.token = action.payload.token;
+                state.error = null;
+            })
+            .addCase(restoreSession.rejected, (state, action) => {
+                state.loading = false;
+                state.currentUser = null;
+                state.token = null;
+                state.error = action.payload as string;
+            })
             .addCase(login.pending, (state) => {
                 state.loading = true;
                 state.error = null;

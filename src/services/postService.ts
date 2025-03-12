@@ -20,7 +20,7 @@ export const getAllPosts = async (): Promise<Post[]> => {
     
     return response.data.map(post => ({
         ...post,
-        createdDate: new Date(post.createdDate),
+        // אין צורך להמיר את התאריך ל-Date, משאירים אותו כמחרוזת
         userName: post.userName || "משתמש לא ידוע",
         userProfilePicture: post.userProfilePicture || '/default-avatar.png'
     }));
@@ -35,7 +35,9 @@ export const getPostsByUserId = async (userId: number): Promise<Post[]> => {
     });
     return response.data.map(post => ({
         ...post,
-        createdDate: new Date(post.createdDate)
+        // אין צורך להמיר את התאריך ל-Date, משאירים אותו כמחרוזת
+        userName: post.userName || "משתמש לא ידוע",
+        userProfilePicture: post.userProfilePicture || '/default-avatar.png'
     }));
 };
 

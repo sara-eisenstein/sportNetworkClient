@@ -5,10 +5,13 @@ export interface LoginDto {
 
 export interface RegisterDto {
     email: string;
-    password: string;
+    passwordHash: string;
     firstName: string;
     lastName: string;
-    phoneNumber?: string;
+    phoneNumber: string;
+    bio: string;
+    goals: string;
+    profilePicture: File | undefined; 
 }
 
 export interface AuthResponse {
