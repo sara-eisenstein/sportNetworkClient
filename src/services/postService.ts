@@ -7,8 +7,23 @@ const API_URL = process.env.REACT_APP_API_URL;
  * מביא את כל הפוסטים
  */
 export const getAllPosts = async (): Promise<Post[]> => {
-    const response = await axios.get<Post[]>(`${API_URL}/api/Post`);
-    return response.data;
+    const response = await axios.get<Post[]>(`${API_URL}/api/Post`, {
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+        }
+    });
+    
+    // לוג מפורט של הנתונים הגולמיים
+    console.log('Raw response:', response);
+    console.log('Raw post data:', JSON.stringify(response.data, null, 2));
+    console.log('First post example:', response.data[0]);
+    
+    return response.data.map(post => ({
+        ...post,
+        createdDate: new Date(post.createdDate),
+        userName: post.userName || "משתמש לא ידוע",
+        userProfilePicture: post.userProfilePicture || '/default-avatar.png'
+    }));
 };
 
 /**
@@ -18,7 +33,10 @@ export const getPostsByUserId = async (userId: number): Promise<Post[]> => {
     const response = await axios.get<Post[]>(`${API_URL}/api/Post/user/${userId}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
     });
-    return response.data;
+    return response.data.map(post => ({
+        ...post,
+        createdDate: new Date(post.createdDate)
+    }));
 };
 
 /**
@@ -84,12 +102,19 @@ export const unlikePost = async (postId: number, userId: number): Promise<void> 
     });
 };
 
+
+
 /**
- * קבלת כמות לייקים של פוסט מסוים
+ * מביא את כמות הלייקים של פוסט מסוים
  */
-export const getLikeCount = async (postId: number): Promise<number> => {
-    const response = await axios.get<number>(`${API_URL}/api/Post/${postId}/likes`);
-    return response.data;
+export const getPostLikeCount = async (postId: number): Promise<number> => {
+    try {
+        const response = await axios.get<number>(`${API_URL}/api/Post/${postId}/likes`);
+        return response.data;
+    } catch (error) {
+        console.error(`❌ Failed to fetch like count for post ${postId}`, error);
+        return 0; // אם יש שגיאה, נחזיר 0 כדי לא להציג נתונים שגויים
+    }
 };
 
 /**

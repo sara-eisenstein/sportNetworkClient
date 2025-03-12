@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
-import { AppDispatch } from '../../store/store';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../../store/store';
 import { removePost, toggleLike, editPost } from '../../store/slices/postSlice';
 import { Post } from '../../models/post';
 import CommentList from '../comments/CommentList';
@@ -15,6 +15,7 @@ interface Props {
 
 const PostCard: React.FC<Props> = ({ post, isOwnPost = false }) => {
     const dispatch = useDispatch<AppDispatch>();
+    const currentUser = useSelector((state: RootState) => state.auth.currentUser);
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditContent] = useState(post.content);
     const [showComments, setShowComments] = useState(false);
@@ -85,12 +86,17 @@ const PostCard: React.FC<Props> = ({ post, isOwnPost = false }) => {
     };
 
     const handleLike = () => {
-        const userId = localStorage.getItem("userId");
-        if (!userId) {
-            console.error("❌ User ID is missing! Cannot toggle like.");
+        if (!currentUser?.userId) {
+            console.error('❌ User ID is missing! Cannot toggle like.');
             return;
         }
-        dispatch(toggleLike({ postId: post.postId!, userId: Number(userId), isLiked: post.isLiked || false }));
+        if (post.postId) {
+            dispatch(toggleLike({ 
+                postId: post.postId, 
+                userId: currentUser.userId,
+                isLiked: !post.isLiked 
+            }));
+        }
     };
 
     const handleEdit = () => {
@@ -133,7 +139,7 @@ const PostCard: React.FC<Props> = ({ post, isOwnPost = false }) => {
                 <div className="post-info">
                     <span className="user-name">{post.userName}</span>
                     <span className="post-date">
-                        {new Date(post.dateCreated).toLocaleDateString('he-IL')}
+                        {post.createdDate ? new Date(post.createdDate).toLocaleDateString('he-IL') : 'תאריך לא זמין'}
                     </span>
                 </div>
                 {isOwnPost && (
@@ -187,13 +193,13 @@ const PostCard: React.FC<Props> = ({ post, isOwnPost = false }) => {
                     className={`like-button ${post.isLiked ? 'liked' : ''}`}
                     onClick={handleLike}
                 >
-                    {post.likesCount} לייקים
+                    {post.isLiked ? '❤️' : '🤍'} {post.likesCount}
                 </button>
                 <button 
                     className="comments-button"
                     onClick={() => setShowComments(!showComments)}
                 >
-                    {post.commentsCount} תגובות
+                    💬 {post.commentsCount}
                 </button>
             </div>
 

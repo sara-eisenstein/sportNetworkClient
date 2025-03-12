@@ -3,7 +3,7 @@ export interface Post {
     userId: number;
     content: string;
     imageUrl?: string;
-    dateCreated: Date;
+    createdDate: Date;
     userName?: string;
     userProfilePicture?: string;
     likesCount: number;
