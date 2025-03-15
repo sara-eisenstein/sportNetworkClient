@@ -85,17 +85,24 @@ export const removePost = createAsyncThunk(
 );
 
 export const toggleLike = createAsyncThunk(
-    "posts/toggleLike",
-    async ({ postId, userId, isLiked }: { postId: number; userId: number; isLiked: boolean }, thunkAPI) => {
+    'posts/toggleLike',
+    async ({ postId, userId, isLiked }: { postId: number; userId: number; isLiked: boolean }) => {
         try {
+            console.log('🔄 Sending like request to server:', { postId, userId, isLiked });
+            
             if (isLiked) {
-                await unlikePost(postId, userId);
-            } else {
                 await likePost(postId, userId);
+                console.log('✅ Like added successfully');
+            } else {
+                await unlikePost(postId, userId);
+                console.log('✅ Like removed successfully');
             }
-            return { postId, userId, isLiked: !isLiked };
+
+            // החזרת האובייקט עם המידע העדכני
+            return { postId, userId, isLiked };
         } catch (error) {
-            return thunkAPI.rejectWithValue("Failed to toggle like");
+            console.error('❌ Failed to toggle like on server:', error);
+            throw error;
         }
     }
 );

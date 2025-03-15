@@ -90,32 +90,57 @@ export const deletePost = async (postId: number): Promise<void> => {
  * לייק לפוסט
  */
 export const likePost = async (postId: number, userId: number): Promise<void> => {
-    await axios.post(`${API_URL}/api/Post/${postId}/like/${userId}`, null, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-    });
+    try {
+        console.log('🔄 Adding like:', { postId, userId });
+        await axios.post(`${API_URL}/api/Post/${postId}/like/${userId}`, null, {
+            headers: { 
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+                'Content-Type': 'application/json'
+            },
+        });
+        console.log('✅ Like added successfully');
+    } catch (error: any) {
+        console.error('❌ Failed to add like:', error.response?.data || error.message);
+        throw error;
+    }
 };
 
 /**
  * הסרת לייק מפוסט
  */
 export const unlikePost = async (postId: number, userId: number): Promise<void> => {
-    await axios.delete(`${API_URL}/api/Post/${postId}/like/${userId}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-    });
+    try {
+        console.log('🔄 Removing like:', { postId, userId });
+        await axios.delete(`${API_URL}/api/Post/${postId}/like/${userId}`, {
+            headers: { 
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+                'Content-Type': 'application/json'
+            },
+        });
+        console.log('✅ Like removed successfully');
+    } catch (error: any) {
+        console.error('❌ Failed to remove like:', error.response?.data || error.message);
+        throw error;
+    }
 };
-
-
 
 /**
  * מביא את כמות הלייקים של פוסט מסוים
  */
 export const getPostLikeCount = async (postId: number): Promise<number> => {
     try {
-        const response = await axios.get<number>(`${API_URL}/api/Post/${postId}/likes`);
-        return response.data;
-    } catch (error) {
-        console.error(`❌ Failed to fetch like count for post ${postId}`, error);
-        return 0; // אם יש שגיאה, נחזיר 0 כדי לא להציג נתונים שגויים
+        console.log('🔄 Fetching like count for post:', postId);
+        const response = await axios.get<number>(`${API_URL}/api/Post/${postId}/likes`, {
+            headers: { 
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        console.log('✅ Like count received:', response.data);
+        return response.data ?? 0;
+    } catch (error: any) {
+        console.error('❌ Failed to fetch like count:', error.response?.data || error.message);
+        return 0;
     }
 };
 

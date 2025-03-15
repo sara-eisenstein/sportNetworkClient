@@ -6,6 +6,7 @@ import { Post } from '../../models/post';
 import CommentList from '../comments/CommentList';
 import { getPostImage } from '../../services/postService';
 import { getUserImage, getPublicUserData } from '../../services/userService';
+import { getPostLikeCount } from '../../services/postService';
 import { PublicUserDto } from '../../models/user';
 import './PostCard.css';
 
@@ -24,6 +25,8 @@ const PostCard: React.FC<Props> = ({ post, isOwnPost = false }) => {
     const [postImageUrl, setPostImageUrl] = useState<string>('');
     const [userProfileImageUrl, setUserProfileImageUrl] = useState<string>('');
     const [author, setAuthor] = useState<PublicUserDto | null>(null);
+    const [likesCount, setLikesCount] = useState<number>(post.likesCount || 0);
+    const [isLiked, setIsLiked] = useState<boolean>(post.isLiked || false);
 
     useEffect(() => {
         // טעינת תמונת הפוסט
@@ -37,6 +40,16 @@ const PostCard: React.FC<Props> = ({ post, isOwnPost = false }) => {
                 .catch(error => {
                     console.error('❌ Failed to load image:', error);
                     setPostImageUrl('/no-image-placeholder.png');
+                });
+
+            // טעינת מספר הלייקים
+            getPostLikeCount(post.postId)
+                .then(count => {
+                    console.log('✅ Like count loaded:', count);
+                    setLikesCount(count);
+                })
+                .catch(error => {
+                    console.error('❌ Failed to load like count:', error);
                 });
         }
 
@@ -97,17 +110,55 @@ const PostCard: React.FC<Props> = ({ post, isOwnPost = false }) => {
         }
     };
 
-    const handleLike = () => {
+    const handleLike = async () => {
+        console.log('🔄 handleLike called with:', {
+            currentUser,
+            postId: post.postId,
+            isCurrentlyLiked: isLiked,
+            currentLikeCount: likesCount
+        });
+
         if (!currentUser?.userId) {
             console.error('❌ User ID is missing! Cannot toggle like.');
             return;
         }
-        if (post.postId) {
-            dispatch(toggleLike({ 
+
+        if (!post.postId) {
+            console.error('❌ Post ID is missing! Cannot toggle like.');
+            return;
+        }
+
+        const newIsLiked = !isLiked;
+        
+        try {
+            // שליחת הבקשה לשרת
+            console.log('🔄 Dispatching toggleLike with:', {
+                postId: post.postId,
+                userId: currentUser.userId,
+                isLiked: newIsLiked
+            });
+
+            await dispatch(toggleLike({ 
                 postId: post.postId, 
                 userId: currentUser.userId,
-                isLiked: !post.isLiked 
-            }));
+                isLiked: newIsLiked 
+            })).unwrap();
+
+            // עדכון המצב המקומי
+            setIsLiked(newIsLiked);
+            
+            // עדכון מספר הלייקים
+            const newCount = Math.max(0, likesCount + (newIsLiked ? 1 : -1));
+            setLikesCount(newCount);
+
+            console.log('✅ Like state updated:', {
+                isLiked: newIsLiked,
+                likesCount: newCount
+            });
+
+        } catch (error) {
+            console.error('❌ Failed to toggle like:', error);
+            // במקרה של שגיאה לא משנים את המצב
         }
     };
 
@@ -204,10 +255,10 @@ const PostCard: React.FC<Props> = ({ post, isOwnPost = false }) => {
 
             <div className="post-footer">
                 <button 
-                    className={`like-button ${post.isLiked ? 'liked' : ''}`}
+                    className={`like-button ${isLiked ? 'liked' : ''}`}
                     onClick={handleLike}
                 >
-                    {post.isLiked ? '❤️' : '🤍'} {post.likesCount}
+                    {isLiked ? '❤️' : '🤍'} {likesCount}
                 </button>
                 <button 
                     className="comments-button"
