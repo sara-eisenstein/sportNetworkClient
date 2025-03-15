@@ -1,5 +1,5 @@
 import axios from "axios";
-import { UserDto } from "../models/user";
+import { UserDto, PublicUserDto } from "../models/user";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -99,5 +99,24 @@ export const getUserImage = async (id: number): Promise<string> => {
             url: error.config?.url
         });
         return '/default-avatar.png';
+    }
+};
+
+/**
+ * מביא את המידע הציבורי של משתמש לפי מזהה
+ */
+export const getPublicUserData = async (userId: number): Promise<PublicUserDto> => {
+    try {
+        console.log(`🔄 Fetching public data for user ${userId}`);
+        const response = await axios.get<PublicUserDto>(`${API_URL}/api/User/${userId}/public`);
+        console.log(`✅ Successfully fetched public data for user ${userId}:`, response.data);
+        return response.data;
+    } catch (error: any) {
+        console.error(`❌ Failed to fetch public data for user ${userId}:`, {
+            error: error.message,
+            status: error.response?.status,
+            data: error.response?.data
+        });
+        throw error;
     }
 };

@@ -5,7 +5,8 @@ import { removePost, toggleLike, editPost } from '../../store/slices/postSlice';
 import { Post } from '../../models/post';
 import CommentList from '../comments/CommentList';
 import { getPostImage } from '../../services/postService';
-import { getUserImage } from '../../services/userService';
+import { getUserImage, getPublicUserData } from '../../services/userService';
+import { PublicUserDto } from '../../models/user';
 import './PostCard.css';
 
 interface Props {
@@ -22,6 +23,7 @@ const PostCard: React.FC<Props> = ({ post, isOwnPost = false }) => {
     const [selectedImage, setSelectedImage] = useState<File | null>(null);
     const [postImageUrl, setPostImageUrl] = useState<string>('');
     const [userProfileImageUrl, setUserProfileImageUrl] = useState<string>('');
+    const [author, setAuthor] = useState<PublicUserDto | null>(null);
 
     useEffect(() => {
         // טעינת תמונת הפוסט
@@ -56,6 +58,16 @@ const PostCard: React.FC<Props> = ({ post, isOwnPost = false }) => {
                     });
                     setUserProfileImageUrl('/default-avatar.png');
                 });
+
+            // טעינת מידע על המשתמש
+            getPublicUserData(post.userId)
+                .then(userData => {
+                    console.log('✅ Author data loaded:', userData);
+                    setAuthor(userData);
+                })
+                .catch(error => {
+                    console.error('❌ Failed to load author data:', error);
+                });
         }
 
         // ניקוי URLs כשהקומפוננטה מתפרקת
@@ -76,7 +88,7 @@ const PostCard: React.FC<Props> = ({ post, isOwnPost = false }) => {
         hasImage: !!post.postId,
         postImageUrl,
         userProfileImageUrl,
-        userName: post.userName
+        authorName: author ? `${author.firstName} ${author.lastName}` : 'Loading...'
     });
 
     const handleDelete = () => {
@@ -123,7 +135,7 @@ const PostCard: React.FC<Props> = ({ post, isOwnPost = false }) => {
             <div className="post-header">
                 <img 
                     src={userProfileImageUrl || '/default-avatar.png'} 
-                    alt={post.userName || "Unknown User"} 
+                    alt={author ? `${author.firstName} ${author.lastName}` : "Unknown User"} 
                     className="user-avatar"
                     onError={(e) => {
                         const target = e.target as HTMLImageElement;
@@ -137,7 +149,9 @@ const PostCard: React.FC<Props> = ({ post, isOwnPost = false }) => {
                     }}
                 />
                 <div className="post-info">
-                    <span className="user-name">{post.userName}</span>
+                    <span className="user-name">
+                        {author ? `${author.firstName} ${author.lastName}` : 'טוען...'}
+                    </span>
                     <span className="post-date">
                         {post.createdDate ? new Date(post.createdDate).toLocaleDateString('he-IL') : 'תאריך לא זמין'}
                     </span>

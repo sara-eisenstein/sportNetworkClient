@@ -19,3 +19,14 @@ export enum FitnessLevel {
     isFollowing?: boolean;
   }
   
+  export interface PublicUserDto {
+    userId: number;
+    firstName: string;
+    lastName: string;
+    level: FitnessLevel;
+    profilePicture: string;
+    goals: string;
+    bio: string;
+    dateJoined: string;
+  }
+  
