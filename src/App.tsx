@@ -6,6 +6,7 @@ import Navbar from "./components/Navbar";
 import { Provider } from "react-redux";
 import { store } from "./store/store";
 import "./App.css";
+import ChatPage from "./pages/ChatPage";
 
 const App: React.FC = () => {
   return (
@@ -15,6 +16,7 @@ const App: React.FC = () => {
           <Navbar />
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/chat" element={<ChatPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
