@@ -1,7 +1,10 @@
 import axios from "axios";
 import { Post } from "../models/post";
 
-const API_URL = process.env.REACT_APP_API_URL;
+// וידוא שיש ערך ברירת מחדל ל-API_URL
+const API_URL = process.env.REACT_APP_API_URL || 'https://localhost:7047';
+
+console.log('🌐 API URL:', API_URL);
 
 /**
  * מביא את כל הפוסטים
@@ -50,16 +53,50 @@ export const getPostById = async (postId: number): Promise<Post> => {
 };
 
 /**
- * יצירת פוסט חדש (כולל תמונה)
+ * יצירת פוסט חדש
  */
 export const createPost = async (postData: FormData): Promise<Post> => {
-    const response = await axios.post<Post>(`${API_URL}/api/Post`, postData, {
-        headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-            'Content-Type': 'multipart/form-data'
-        },
-    });
-    return response.data;
+    try {
+        console.log('🔄 Creating post at:', `${API_URL}/api/Post`);
+        
+        // לוג של תוכן ה-FormData בצורה בטוחה
+        console.log('📦 Post data contents:');
+        // שימוש בשיטה בטוחה יותר מבחינת TypeScript
+        const formDataEntries: {key: string, value: string}[] = [];
+        postData.forEach((value, key) => {
+            const displayValue = value instanceof File ? `File: ${value.name}` : String(value);
+            formDataEntries.push({key, value: displayValue});
+            console.log(`- ${key}: ${displayValue}`);
+        });
+
+        const token = localStorage.getItem("token");
+        console.log('🔑 Token present:', !!token);
+
+        const response = await axios.post<Post>(
+            `${API_URL}/api/Post`,
+            postData,
+            {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'Authorization': `Bearer ${token}`
+                }
+            }
+        );
+
+        console.log('✅ Server response:', response.data);
+        return response.data;
+    } catch (error: any) {
+        console.error('❌ Failed to create post');
+        if (axios.isAxiosError(error)) {
+            console.error('Status:', error.response?.status);
+            console.error('Status Text:', error.response?.statusText);
+            console.error('Response Data:', error.response?.data);
+            if (error.response?.data?.errors) {
+                console.error('Validation Errors:', JSON.stringify(error.response.data.errors));
+            }
+        }
+        throw error;
+    }
 };
 
 /**

@@ -34,11 +34,16 @@ const PostCard: React.FC<Props> = ({ post, isOwnPost = false }) => {
             console.log('🔄 Loading image for post:', post.postId);
             getPostImage(post.postId)
                 .then(url => {
-                    console.log('✅ Image loaded successfully:', url);
+                    if (!url) {
+                        console.log('⚠️ No image URL returned for post:', post.postId);
+                        setPostImageUrl('/no-image-placeholder.png');
+                        return;
+                    }
+                    console.log('✅ Image loaded successfully for post:', post.postId, 'URL:', url);
                     setPostImageUrl(url);
                 })
                 .catch(error => {
-                    console.error('❌ Failed to load image:', error);
+                    console.error('❌ Failed to load image for post:', post.postId, error);
                     setPostImageUrl('/no-image-placeholder.png');
                 });
 
@@ -224,9 +229,12 @@ const PostCard: React.FC<Props> = ({ post, isOwnPost = false }) => {
                     />
                     <input
                         type="file"
-                        accept="image/*"
+                        accept="image/jpeg,image/png,image/gif,image/webp,image/bmp"
                         onChange={handleImageChange}
                     />
+                    <small className="file-info">
+                        קבצים נתמכים: JPG, PNG, GIF, WEBP, BMP
+                    </small>
                     <div className="edit-actions">
                         <button onClick={handleEdit}>שמור</button>
                         <button onClick={() => setIsEditing(false)}>ביטול</button>
@@ -235,20 +243,30 @@ const PostCard: React.FC<Props> = ({ post, isOwnPost = false }) => {
             ) : (
                 <>
                     <p className="post-content">{post.content}</p>
-                    {post.postId && postImageUrl && (
-                        <img 
-                            src={postImageUrl}
-                            alt="תמונת פוסט" 
-                            className="post-image"
-                            onError={(e) => {
-                                console.error('Failed to load post image:', {
-                                    postId: post.postId,
-                                    error: e
-                                });
-                                const target = e.target as HTMLImageElement;
-                                target.src = '/no-image-placeholder.png';
-                            }}
-                        />
+                    {post.postId && (
+                        <div className="post-image-container">
+                            {postImageUrl && postImageUrl !== '/no-image-placeholder.png' ? (
+                                <img 
+                                    src={postImageUrl}
+                                    alt="תמונת פוסט" 
+                                    className="post-image"
+                                    loading="lazy"
+                                    onError={(e) => {
+                                        console.error('❌ Failed to load post image:', {
+                                            postId: post.postId,
+                                            url: (e.target as HTMLImageElement).src,
+                                            error: 'Image loading failed'
+                                        });
+                                        const target = e.target as HTMLImageElement;
+                                        if (target.src !== `${window.location.origin}/no-image-placeholder.png`) {
+                                            target.src = '/no-image-placeholder.png';
+                                        }
+                                    }}
+                                />
+                            ) : (
+                                <div className="no-image-message">אין תמונה זמינה</div>
+                            )}
+                        </div>
                     )}
                 </>
             )}

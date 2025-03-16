@@ -1,12 +1,18 @@
 export interface Post {
     postId?: number;
-    userId: number;
+    userId?: number;
     content: string;
-    imageUrl?: string;
-    createdDate: string;
+    createdDate?: string;
     userName?: string;
     userProfilePicture?: string;
-    likesCount: number;
-    commentsCount: number;
+    commentsCount?: number;
+    likesCount?: number;
     isLiked?: boolean;
+}
+
+// מודל לשליחת פוסט חדש
+export interface CreatePostDto {
+    content: string;
+    createdDate: string;
+    imageFile?: File;
 } 

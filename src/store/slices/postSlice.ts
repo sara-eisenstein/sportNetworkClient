@@ -3,7 +3,7 @@ import { Post } from "../../models/post";
 import { 
     getAllPosts, 
     getPostsByUserId, 
-    createPost, 
+    createPost as createPostService, 
     updatePost, 
     deletePost,
     likePost,
@@ -50,14 +50,13 @@ export const fetchUserPosts = createAsyncThunk(
     }
 );
 
-export const addPost = createAsyncThunk(
-    "posts/create",
-    async (postData: FormData, thunkAPI) => {
-        try {
-            return await createPost(postData);
-        } catch (error) {
-            return thunkAPI.rejectWithValue("Failed to create post");
-        }
+export const addNewPost = createAsyncThunk<Post, FormData>(
+    'posts/createPost',
+    async (postData: FormData) => {
+        console.log('🔄 postSlice: Creating new post');
+        const response = await createPostService(postData);
+        console.log('✅ postSlice: Post created successfully:', response);
+        return response;
     }
 );
 
@@ -140,12 +139,17 @@ const postSlice = createSlice({
                 state.error = action.payload as string;
             })
             // Create Post
-            .addCase(addPost.fulfilled, (state, action: PayloadAction<Post>) => {
-                state.posts.unshift(action.payload);
+            .addCase(addNewPost.pending, (state) => {
+                state.loading = true;
                 state.error = null;
             })
-            .addCase(addPost.rejected, (state, action) => {
-                state.error = action.payload as string;
+            .addCase(addNewPost.fulfilled, (state, action) => {
+                state.loading = false;
+                state.posts = [action.payload, ...state.posts];
+            })
+            .addCase(addNewPost.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error.message || 'Failed to create post';
             })
             // Edit Post
             .addCase(editPost.fulfilled, (state, action: PayloadAction<Post>) => {
@@ -173,13 +177,22 @@ const postSlice = createSlice({
                 const post = state.posts.find(p => p.postId === postId);
                 if (post) {
                     post.isLiked = isLiked;
-                    post.likesCount += isLiked ? 1 : -1;
+                    // טיפול במקרה שבו likesCount הוא undefined
+                    post.likesCount = (post.likesCount || 0) + (isLiked ? 1 : -1);
+                    // וידוא שמספר הלייקים לא יורד מתחת ל-0
+                    if (post.likesCount < 0) post.likesCount = 0;
                 }
+                
+                // עדכון הפוסט ברשימת הפוסטים של המשתמש
                 const userPost = state.userPosts.find(p => p.postId === postId);
                 if (userPost) {
                     userPost.isLiked = isLiked;
-                    userPost.likesCount += isLiked ? 1 : -1;
+                    // טיפול במקרה שבו likesCount הוא undefined
+                    userPost.likesCount = (userPost.likesCount || 0) + (isLiked ? 1 : -1);
+                    // וידוא שמספר הלייקים לא יורד מתחת ל-0
+                    if (userPost.likesCount < 0) userPost.likesCount = 0;
                 }
+                
                 state.error = null;
             })
             .addCase(toggleLike.rejected, (state, action) => {
