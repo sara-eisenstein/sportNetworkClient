@@ -4,7 +4,7 @@ import { Provider, useDispatch } from "react-redux";
 import { store } from "./store/store";
 import { restoreSession } from "./store/slices/authSlice";
 import { AppDispatch } from "./store/store";
-import Navbar from "./components/Navbar";
+import Navbar from "./components/layout/Navbar";
 import AppRoutes from "./routes/AppRoutes";
 import "./App.css";
 
