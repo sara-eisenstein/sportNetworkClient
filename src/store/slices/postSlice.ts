@@ -52,21 +52,33 @@ export const fetchUserPosts = createAsyncThunk(
 
 export const addNewPost = createAsyncThunk<Post, FormData>(
     'posts/createPost',
-    async (postData: FormData) => {
+    async (postData: FormData, { dispatch }) => {
         console.log('🔄 postSlice: Creating new post');
         const response = await createPostService(postData);
         console.log('✅ postSlice: Post created successfully:', response);
+        
+        // רענון רשימת הפוסטים לאחר יצירת פוסט חדש
+        dispatch(fetchAllPosts());
+        
         return response;
     }
 );
 
 export const editPost = createAsyncThunk(
     "posts/edit",
-    async ({ postId, postData }: { postId: number; postData: FormData }, thunkAPI) => {
+    async ({ postId, postData }: { postId: number; postData: FormData }, { dispatch }) => {
         try {
-            return await updatePost(postId, postData);
+            console.log('🔄 postSlice: Editing post:', postId);
+            const response = await updatePost(postId, postData);
+            console.log('✅ postSlice: Post edited successfully:', response);
+            
+            // רענון רשימת הפוסטים לאחר עריכת פוסט
+            dispatch(fetchAllPosts());
+            
+            return response;
         } catch (error) {
-            return thunkAPI.rejectWithValue("Failed to update post");
+            console.error('❌ postSlice: Failed to edit post:', error);
+            throw error;
         }
     }
 );
@@ -145,7 +157,14 @@ const postSlice = createSlice({
             })
             .addCase(addNewPost.fulfilled, (state, action) => {
                 state.loading = false;
-                state.posts = [action.payload, ...state.posts];
+                // הוספת הפוסט החדש לתחילת הרשימה
+                if (action.payload && action.payload.postId) {
+                    // בדיקה שהפוסט לא קיים כבר ברשימה
+                    const exists = state.posts.some(post => post.postId === action.payload.postId);
+                    if (!exists) {
+                        state.posts = [action.payload, ...state.posts];
+                    }
+                }
             })
             .addCase(addNewPost.rejected, (state, action) => {
                 state.loading = false;

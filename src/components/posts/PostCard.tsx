@@ -27,6 +27,7 @@ const PostCard: React.FC<Props> = ({ post, isOwnPost = false }) => {
     const [author, setAuthor] = useState<PublicUserDto | null>(null);
     const [likesCount, setLikesCount] = useState<number>(post.likesCount || 0);
     const [isLiked, setIsLiked] = useState<boolean>(post.isLiked || false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         // טעינת תמונת הפוסט
@@ -167,16 +168,51 @@ const PostCard: React.FC<Props> = ({ post, isOwnPost = false }) => {
         }
     };
 
-    const handleEdit = () => {
-        if (editContent.trim()) {
+    const handleSaveEdit = async () => {
+        if (!editContent.trim()) {
+            console.error('❌ Edit content is empty');
+            return;
+        }
+
+        try {
+            setIsSubmitting(true);
+            
             const formData = new FormData();
-            formData.append('content', editContent);
-            if (selectedImage) {
-                formData.append('image', selectedImage);
+            // שדות חובה לפי הקונטרולר בצד שרת
+            formData.append('Id', post.postId!.toString());
+            formData.append('Content', editContent.trim());
+            
+            // הוספת מזהה המשתמש אם קיים
+            if (post.userId) {
+                formData.append('UserId', post.userId.toString());
             }
-            dispatch(editPost({ postId: post.postId!, postData: formData }));
+            
+            // הוספת תאריך היצירה המקורי
+            if (post.createdDate) {
+                formData.append('CreatedDate', post.createdDate);
+            }
+            
+            // הוספת תמונה חדשה אם נבחרה
+            if (selectedImage) {
+                formData.append('File', selectedImage);
+            }
+
+            console.log('📤 Saving edited post:', {
+                postId: post.postId,
+                content: editContent.trim(),
+                hasImage: !!selectedImage,
+                imageFileName: selectedImage?.name
+            });
+
+            await dispatch(editPost({ postId: post.postId!, postData: formData })).unwrap();
+            
+            console.log('✅ Post edited successfully');
             setIsEditing(false);
             setSelectedImage(null);
+        } catch (error) {
+            console.error('❌ Failed to edit post:', error);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -236,7 +272,7 @@ const PostCard: React.FC<Props> = ({ post, isOwnPost = false }) => {
                         קבצים נתמכים: JPG, PNG, GIF, WEBP, BMP
                     </small>
                     <div className="edit-actions">
-                        <button onClick={handleEdit}>שמור</button>
+                        <button onClick={handleSaveEdit}>שמור</button>
                         <button onClick={() => setIsEditing(false)}>ביטול</button>
                     </div>
                 </div>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../store/store';
-import { addNewPost } from '../../store/slices/postSlice';
+import { addNewPost, fetchAllPosts } from '../../store/slices/postSlice';
 import './CreatePost.css';
 
 const CreatePost: React.FC = () => {
@@ -11,10 +11,12 @@ const CreatePost: React.FC = () => {
     const [selectedImage, setSelectedImage] = useState<File | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
+        setSuccessMessage(null);
         
         if (!content.trim()) {
             setError('תוכן הפוסט לא יכול להיות ריק');
@@ -35,7 +37,7 @@ const CreatePost: React.FC = () => {
                 formData.append('UserId', currentUser.userId.toString());
             }
             
-            // הוספת תמונה אם קיימת - שינוי שם השדה מ-ImageFile ל-File
+            // הוספת תמונה אם קיימת
             if (selectedImage) {
                 formData.append('File', selectedImage);
             }
@@ -51,9 +53,20 @@ const CreatePost: React.FC = () => {
             const result = await dispatch(addNewPost(formData)).unwrap();
             console.log('✅ Post created successfully:', result);
             
+            // רענון רשימת הפוסטים
+            await dispatch(fetchAllPosts());
+            
+            // הצגת הודעת הצלחה
+            setSuccessMessage('הפוסט נוצר בהצלחה!');
+            
             // ניקוי הטופס
             setContent('');
             setSelectedImage(null);
+            
+            // הסתרת הודעת ההצלחה אחרי 3 שניות
+            setTimeout(() => {
+                setSuccessMessage(null);
+            }, 3000);
             
         } catch (error: any) {
             console.error('❌ Failed to create post:', error);
@@ -90,6 +103,7 @@ const CreatePost: React.FC = () => {
         <div className="create-post">
             <h3>יצירת פוסט חדש</h3>
             {error && <div className="error-message">{error}</div>}
+            {successMessage && <div className="success-message">{successMessage}</div>}
             <form onSubmit={handleSubmit} className="create-post-form">
                 <textarea
                     value={content}

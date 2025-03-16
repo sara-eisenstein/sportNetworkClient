@@ -103,13 +103,173 @@ export const createPost = async (postData: FormData): Promise<Post> => {
  * עדכון פוסט קיים (כולל אפשרות לעדכן תמונה)
  */
 export const updatePost = async (postId: number, postData: FormData): Promise<Post> => {
-    const response = await axios.put<Post>(`${API_URL}/api/Post/${postId}`, postData, {
-        headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-            'Content-Type': 'multipart/form-data'
-        },
-    });
-    return response.data;
+    try {
+        console.log('🔄 Updating post:', postId);
+        console.log('📦 Post data contents:');
+        postData.forEach((value, key) => {
+            const displayValue = value instanceof File ? `File: ${value.name}` : String(value);
+            console.log(`- ${key}: ${displayValue}`);
+        });
+
+        const token = localStorage.getItem("token");
+        console.log('🔑 Token present:', !!token);
+
+        // קבלת הפוסט הקיים לפני העדכון
+        const existingPost = await getPostById(postId);
+        console.log('📦 Existing post data:', existingPost);
+
+        // בדיקה אם יש תמונה חדשה
+        const imageFile = postData.get('File') || postData.get('ImageFile');
+        const hasNewImage = imageFile instanceof File;
+
+        // אם אין תמונה חדשה, ננסה לשלוח JSON
+        if (!hasNewImage) {
+            try {
+                console.log('🖼️ No new image, sending JSON to preserve existing image');
+                
+                const jsonData = {
+                    id: postId,
+                    content: postData.get('Content') || postData.get('content') || existingPost.content,
+                    userId: existingPost.userId,
+                    createdDate: existingPost.createdDate
+                    // לא שולחים שדה File או Media בכלל
+                };
+                
+                console.log('📦 JSON data for update:', jsonData);
+                
+                const jsonResponse = await axios.put(
+                    `${API_URL}/api/Post/${postId}`,
+                    jsonData,
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        }
+                    }
+                );
+                
+                console.log('✅ Post updated successfully with JSON:', jsonResponse.data);
+                
+                // קבלת הפוסט המעודכן
+                const updatedPost = await getPostById(postId);
+                return updatedPost;
+            } catch (jsonError) {
+                console.error('❌ JSON approach failed:', jsonError);
+                console.log('⚠️ Trying with original image...');
+                
+                // אם הגישה עם JSON נכשלה, ננסה להשיג את התמונה המקורית
+                try {
+                    // שליחת בקשה לקבלת התמונה המקורית
+                    const imageResponse = await axios.get(`${API_URL}/api/Post/getPostImage/${postId}`, {
+                        responseType: 'blob'
+                    });
+                    
+                    // יצירת קובץ מה-blob
+                    const originalImageBlob = imageResponse.data;
+                    const originalImageFile = new File([originalImageBlob], `original_image_${postId}.jpg`, {
+                        type: originalImageBlob.type || 'image/jpeg'
+                    });
+                    
+                    // יצירת FormData חדש עם התמונה המקורית
+                    const formDataWithOriginalImage = new FormData();
+                    formDataWithOriginalImage.append('Id', postId.toString());
+                    formDataWithOriginalImage.append('Content', postData.get('Content') || postData.get('content') || existingPost.content);
+                    
+                    if (existingPost.userId) {
+                        formDataWithOriginalImage.append('UserId', existingPost.userId.toString());
+                    }
+                    
+                    if (existingPost.createdDate) {
+                        formDataWithOriginalImage.append('CreatedDate', existingPost.createdDate);
+                    }
+                    
+                    formDataWithOriginalImage.append('File', originalImageFile);
+                    
+                    console.log('🖼️ Sending form data with original image');
+                    
+                    const originalImageResponse = await axios.put(
+                        `${API_URL}/api/Post/${postId}`,
+                        formDataWithOriginalImage,
+                        {
+                            headers: {
+                                'Content-Type': 'multipart/form-data',
+                                'Authorization': `Bearer ${token}`
+                            }
+                        }
+                    );
+                    
+                    console.log('✅ Post updated successfully with original image:', originalImageResponse.data);
+                    
+                    // קבלת הפוסט המעודכן
+                    const updatedPost = await getPostById(postId);
+                    return updatedPost;
+                } catch (originalImageError) {
+                    console.error('❌ Original image approach failed:', originalImageError);
+                    throw originalImageError;
+                }
+            }
+        }
+        
+        // אם יש תמונה חדשה, שולחים FormData עם התמונה החדשה
+        console.log('📸 New image detected, sending with FormData');
+        
+        // יצירת FormData חדש עם כל השדות הקיימים
+        const formData = new FormData();
+        
+        // הוספת שדות חובה
+        formData.append('Id', postId.toString());
+        
+        // הוספת תוכן - אם יש חדש, משתמשים בו, אחרת משתמשים בקיים
+        const newContent = postData.get('Content') || postData.get('content');
+        formData.append('Content', newContent ? newContent.toString() : existingPost.content);
+        
+        // הוספת מזהה המשתמש
+        if (existingPost.userId) {
+            formData.append('UserId', existingPost.userId.toString());
+        }
+        
+        // הוספת תאריך היצירה
+        if (existingPost.createdDate) {
+            formData.append('CreatedDate', existingPost.createdDate);
+        }
+        
+        // הוספת התמונה החדשה
+        formData.append('File', imageFile as File);
+        console.log('📸 Sending new image:', (imageFile as File).name);
+        
+        // שליחת הנתונים כ-FormData
+        const response = await axios.put(
+            `${API_URL}/api/Post/${postId}`,
+            formData,
+            {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'Authorization': `Bearer ${token}`
+                }
+            }
+        );
+        
+        console.log('✅ Post updated successfully with new image:', response.data);
+        
+        // קבלת הפוסט המעודכן
+        const updatedPost = await getPostById(postId);
+        return updatedPost;
+    } catch (error: any) {
+        console.error('❌ Failed to update post:', error);
+        
+        if (axios.isAxiosError(error)) {
+            console.error('Status:', error.response?.status);
+            console.error('Status Text:', error.response?.statusText);
+            console.error('Response Data:', error.response?.data);
+            
+            // הצגת שגיאות ולידציה אם קיימות
+            if (error.response?.data?.errors) {
+                console.error('Validation Errors:', JSON.stringify(error.response.data.errors, null, 2));
+            }
+        }
+        
+        throw error;
+    }
 };
 
 /**
