@@ -1,16 +1,10 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { LoginDto, RegisterDto, AuthResponse } from '../../models/auth';
-
-interface User {
-    userId: number;
-    firstName: string;
-    email: string;
-    profilePicture?: string;
-}
+import { UserDto, FitnessLevel } from '../../models/user';
 
 interface AuthState {
-    currentUser: User | null;
+    currentUser: UserDto | null;
     token: string | null;
     loading: boolean;
     error: string | null;
@@ -64,11 +58,35 @@ export const login = createAsyncThunk(
                 return rejectWithValue({ message: 'שגיאה בפענוח פרטי המשתמש', shouldRegister: false });
             }
 
-            const user: User = {
+            const user: UserDto = {
                 userId: parseInt(tokenData['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier']),
                 firstName: tokenData['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'],
-                email: tokenData['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress']
+                lastName: tokenData['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname'] || '',
+                email: tokenData['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'],
+                bio: '',
+                profilePicture: '/default-avatar.png',
+                level: FitnessLevel.Beginner,
+                goals: '',
+                dateJoined: new Date().toISOString(),
+                status: true
             };
+
+            // לאחר התחברות מוצלחת, נשלוף את פרטי המשתמש המלאים מהשרת
+            try {
+                const userResponse = await axios.get(`${process.env.REACT_APP_API_URL}/api/User/${user.userId}`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+                
+                if (userResponse.data) {
+                    // עדכון פרטי המשתמש עם המידע המלא מהשרת
+                    Object.assign(user, userResponse.data);
+                }
+            } catch (error) {
+                console.error('Failed to fetch user details:', error);
+                // נמשיך עם פרטי המשתמש הבסיסיים מהטוקן
+            }
 
             return {
                 token,
@@ -139,7 +157,21 @@ export const register = createAsyncThunk(
             localStorage.setItem('token', token);
 
             // Parse user details from token
-            const user = parseJwt(token);
+            const tokenData = parseJwt(token);
+            
+            const user: UserDto = {
+                userId: parseInt(tokenData['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier']),
+                firstName: registerData.firstName,
+                lastName: registerData.lastName,
+                email: registerData.email,
+                bio: registerData.bio || '',
+                profilePicture: '/default-avatar.png',
+                level: FitnessLevel.Beginner,
+                goals: registerData.goals || '',
+                dateJoined: new Date().toISOString(),
+                status: true
+            };
+            
             return {
                 user,
                 token
@@ -168,11 +200,34 @@ export const restoreSession = createAsyncThunk(
             // הגדרת הטוקן בהדר הגלובלי של axios
             axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
-            const user: User = {
-                userId: parseInt(decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier']),
+            const userId = parseInt(decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier']);
+            
+            // יצירת אובייקט משתמש בסיסי מהטוקן
+            const user: UserDto = {
+                userId: userId,
                 firstName: decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'],
-                email: decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress']
+                lastName: decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname'] || '',
+                email: decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'],
+                bio: '',
+                profilePicture: '/default-avatar.png',
+                level: FitnessLevel.Beginner,
+                goals: '',
+                dateJoined: new Date().toISOString(),
+                status: true
             };
+
+            // נסיון לשלוף את פרטי המשתמש המלאים מהשרת
+            try {
+                const userResponse = await axios.get(`${process.env.REACT_APP_API_URL}/api/User/${userId}`);
+                
+                if (userResponse.data) {
+                    // עדכון פרטי המשתמש עם המידע המלא מהשרת
+                    Object.assign(user, userResponse.data);
+                }
+            } catch (error) {
+                console.error('Failed to fetch user details:', error);
+                // נמשיך עם פרטי המשתמש הבסיסיים מהטוקן
+            }
 
             console.log('Restored user from token:', user);
 
@@ -184,6 +239,66 @@ export const restoreSession = createAsyncThunk(
             console.error('Failed to restore session:', error);
             localStorage.removeItem('token');
             return rejectWithValue('Failed to restore session');
+        }
+    }
+);
+
+// פונקציה לעדכון פרטי המשתמש
+export const updateUserProfile = createAsyncThunk(
+    'auth/updateUserProfile',
+    async (userData: any, { getState, rejectWithValue }) => {
+        try {
+            const state = getState() as { auth: AuthState };
+            const { currentUser, token } = state.auth;
+            
+            if (!currentUser || !token) {
+                return rejectWithValue('User not authenticated');
+            }
+            
+            // יצירת FormData לשליחת הנתונים כולל קבצים
+            const formData = new FormData();
+            
+            // הוספת כל השדות שהתקבלו לעדכון
+            Object.entries(userData).forEach(([key, value]) => {
+                // אם זה קובץ תמונה, נטפל בו בנפרד
+                if (key === 'profilePictureFile' && value instanceof File) {
+                    formData.append('file', value as File);
+                } 
+                // אחרת נוסיף את השדה כרגיל
+                else if (key !== 'profilePictureFile' && value !== undefined) {
+                    formData.append(key, String(value));
+                }
+            });
+            
+            // שליחת הבקשה לעדכון פרטי המשתמש
+            const response = await axios.put(
+                `${process.env.REACT_APP_API_URL}/api/User/${currentUser.userId}`,
+                formData,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'multipart/form-data'
+                    }
+                }
+            );
+            
+            // שליפת פרטי המשתמש המעודכנים
+            const updatedUserResponse = await axios.get(
+                `${process.env.REACT_APP_API_URL}/api/User/${currentUser.userId}`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }
+            );
+            
+            return updatedUserResponse.data;
+        } catch (error) {
+            console.error('Failed to update user profile:', error);
+            if (axios.isAxiosError(error)) {
+                return rejectWithValue(error.response?.data || 'Failed to update profile');
+            }
+            return rejectWithValue('Failed to update profile');
         }
     }
 );
@@ -253,6 +368,19 @@ const authSlice = createSlice({
             .addCase(register.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string || 'Registration failed';
+            })
+            .addCase(updateUserProfile.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(updateUserProfile.fulfilled, (state, action) => {
+                state.loading = false;
+                state.currentUser = action.payload;
+                state.error = null;
+            })
+            .addCase(updateUserProfile.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string || 'Failed to update profile';
             });
     }
 });

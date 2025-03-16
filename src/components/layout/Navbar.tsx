@@ -47,7 +47,7 @@ const Navbar: React.FC = () => {
                             אימונים
                         </Link>
                     </li>
-                    {currentUser ? (
+                    {currentUser && (
                         <>
                             <li className="nav-item">
                                 <Link to="/profile" className="nav-link" onClick={() => setMenuOpen(false)}>
@@ -60,7 +60,8 @@ const Navbar: React.FC = () => {
                                 </button>
                             </li>
                         </>
-                    ) : (
+                    )}
+                    {!currentUser && (
                         <>
                             <li className="nav-item">
                                 <Link to="/login" className="nav-link" onClick={() => setMenuOpen(false)}>

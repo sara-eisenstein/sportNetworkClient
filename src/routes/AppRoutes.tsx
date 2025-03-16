@@ -5,11 +5,12 @@ import { RootState } from '../store/store';
 import HomePage from '../pages/HomePage';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
+import ProfilePage from '../pages/ProfilePage';
 import PrivateRoute from '../components/auth/PrivateRoute';
 
 // Placeholder components - יש להחליף אותם בקומפוננטים האמיתיים
-const ProfilePage = () => <div>Profile Page</div>;
 const ChallengesPage = () => <div>Challenges Page</div>;
+const WorkoutsPage = () => <div>Workouts Page</div>;
 
 const AppRoutes: React.FC = () => {
     const { currentUser } = useSelector((state: RootState) => state.auth);
@@ -35,6 +36,12 @@ const AppRoutes: React.FC = () => {
             <Route path="/challenges" element={
                 <PrivateRoute>
                     <ChallengesPage />
+                </PrivateRoute>
+            } />
+            
+            <Route path="/workouts" element={
+                <PrivateRoute>
+                    <WorkoutsPage />
                 </PrivateRoute>
             } />
 
