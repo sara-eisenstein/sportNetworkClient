@@ -17,6 +17,56 @@ const getProfileImageUrl = (userId: number | string) => {
     return `${process.env.REACT_APP_API_URL}/getUserImage/${userId}?timestamp=${new Date().getTime()}`;
 };
 
+// פונקציה עזר להמרת רמת כושר למחרוזת בעברית
+const getFitnessLevelText = (level: FitnessLevel): string => {
+    switch (level) {
+        case FitnessLevel.Beginner:
+            return 'מתחיל';
+        case FitnessLevel.Intermediate:
+            return 'בינוני';
+        case FitnessLevel.Advanced:
+            return 'מתקדם';
+        case FitnessLevel.Professional:
+            return 'מקצועי';
+        default:
+            return 'לא ידוע';
+    }
+};
+
+// קומפוננטה לבחירת רמת כושר - ניתן לשימוש חוזר בדפי הרשמה ופרופיל
+interface FitnessLevelSelectorProps {
+    value: FitnessLevel;
+    onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+    required?: boolean;
+    label?: string;
+}
+
+export const FitnessLevelSelector: React.FC<FitnessLevelSelectorProps> = ({
+    value,
+    onChange,
+    required = false,
+    label = 'רמת כושר'
+}) => {
+    return (
+        <div className="form-group">
+            <label htmlFor="level">{label}</label>
+            <select
+                id="level"
+                name="level"
+                value={value}
+                onChange={onChange}
+                required={required}
+                className="fitness-level-select"
+            >
+                <option value={FitnessLevel.Beginner}>מתחיל</option>
+                <option value={FitnessLevel.Intermediate}>בינוני</option>
+                <option value={FitnessLevel.Advanced}>מתקדם</option>
+                <option value={FitnessLevel.Professional}>מקצועי</option>
+            </select>
+        </div>
+    );
+};
+
 const ProfilePage: React.FC = () => {
     const { currentUser, loading } = useSelector((state: RootState) => state.auth);
     const dispatch = useDispatch<AppDispatch>();
@@ -186,21 +236,11 @@ const ProfilePage: React.FC = () => {
                             />
                         </div>
 
-                        <div className="form-group">
-                            <label htmlFor="level">רמת כושר</label>
-                            <select
-                                id="level"
-                                name="level"
-                                value={formData.level}
-                                onChange={handleChange}
-                                required
-                            >
-                                <option value={FitnessLevel.Beginner}>מתחיל</option>
-                                <option value={FitnessLevel.Intermediate}>בינוני</option>
-                                <option value={FitnessLevel.Advanced}>מתקדם</option>
-                                <option value={FitnessLevel.Professional}>מקצועי</option>
-                            </select>
-                        </div>
+                        <FitnessLevelSelector
+                            value={formData.level}
+                            onChange={handleChange}
+                            required={true}
+                        />
 
                         <div className="form-group">
                             <label htmlFor="goals">מטרות כושר</label>
@@ -276,10 +316,7 @@ const ProfilePage: React.FC = () => {
                             <div className="detail-item">
                                 <span className="detail-label">רמת כושר:</span>
                                 <span className="detail-value">
-                                    {currentUser.level === FitnessLevel.Beginner && 'מתחיל'}
-                                    {currentUser.level === FitnessLevel.Intermediate && 'בינוני'}
-                                    {currentUser.level === FitnessLevel.Advanced && 'מתקדם'}
-                                    {currentUser.level === FitnessLevel.Professional && 'מקצועי'}
+                                    {getFitnessLevelText(currentUser.level)}
                                 </span>
                             </div>
                             

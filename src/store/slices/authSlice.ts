@@ -130,9 +130,9 @@ export const register = createAsyncThunk(
             formData.append('lastName', registerData.lastName);
             formData.append('email', registerData.email);
             formData.append('passwordHash', registerData.passwordHash);
-            formData.append('level', 'Beginner');
-            formData.append('goals', registerData.goals);
-            formData.append('bio', registerData.bio);
+            formData.append('level', registerData.level.toString());
+            formData.append('goals', registerData.goals || '');
+            formData.append('bio', registerData.bio || '');
             if (registerData.phoneNumber) {
                 formData.append('phoneNumber', registerData.phoneNumber);
             }

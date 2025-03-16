@@ -4,6 +4,8 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { register } from '../store/slices/authSlice';
 import { AppDispatch, RootState } from '../store/store';
 import { RegisterDto } from '../models/auth';
+import { FitnessLevel } from '../models/user';
+import { FitnessLevelSelector } from './ProfilePage';
 import './RegisterPage.css';
 
 const RegisterPage: React.FC = () => {
@@ -20,7 +22,8 @@ const RegisterPage: React.FC = () => {
         lastName: '',
         phoneNumber: '',
         bio: '',
-        goals: ''
+        goals: '',
+        level: FitnessLevel.Beginner
     });
     const [profilePicture, setProfilePicture] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -36,7 +39,7 @@ const RegisterPage: React.FC = () => {
         }
     }, [currentUser, navigate, from]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         setFormData({
             ...formData,
             [e.target.name]: e.target.value
@@ -87,6 +90,7 @@ const RegisterPage: React.FC = () => {
                 phoneNumber: formData.phoneNumber,
                 bio: formData.bio,
                 goals: formData.goals,
+                level: formData.level,
                 profilePicture: profilePicture || undefined
             };
 
@@ -186,6 +190,13 @@ const RegisterPage: React.FC = () => {
                             disabled={loading}
                         />
                     </div>
+
+                    <FitnessLevelSelector
+                        value={formData.level}
+                        onChange={handleChange}
+                        required={true}
+                        label="בחר את רמת הכושר שלך *"
+                    />
 
                     <div className="form-group">
                         <label htmlFor="profilePicture">תמונת פרופיל</label>

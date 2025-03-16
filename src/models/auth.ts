@@ -1,3 +1,5 @@
+import { FitnessLevel } from './user';
+
 export interface LoginDto {
     email: string;
     password: string;
@@ -8,10 +10,11 @@ export interface RegisterDto {
     passwordHash: string;
     firstName: string;
     lastName: string;
-    phoneNumber: string;
-    bio: string;
-    goals: string;
-    profilePicture: File | undefined; 
+    phoneNumber?: string;
+    bio?: string;
+    goals?: string;
+    level: FitnessLevel;
+    profilePicture?: File;
 }
 
 export interface AuthResponse {
