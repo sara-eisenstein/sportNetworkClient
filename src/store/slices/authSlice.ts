@@ -186,7 +186,7 @@ export const register = createAsyncThunk(
     }
 );
 
-// פונקציה חדשה לשחזור הסשן
+// פונקציה לשחזור הסשן
 export const restoreSession = createAsyncThunk(
     'auth/restoreSession',
     async (token: string, { rejectWithValue }) => {
@@ -222,7 +222,27 @@ export const restoreSession = createAsyncThunk(
                 
                 if (userResponse.data) {
                     // עדכון פרטי המשתמש עם המידע המלא מהשרת
-                    Object.assign(user, userResponse.data);
+                    const userData = userResponse.data;
+                    
+                    // וידוא שרמת הכושר נשמרת כראוי
+                    if (userData.level !== undefined && userData.level !== null) {
+                        // המרה בטוחה יותר לפי המלצת TypeScript
+                        const levelValue = Number(userData.level);
+                        user.level = levelValue as unknown as FitnessLevel;
+                    }
+                    
+                    // וידוא שתאריך ההצטרפות נשמר כראוי
+                    if (userData.dateJoined) {
+                        user.dateJoined = userData.dateJoined;
+                    }
+                    
+                    // עדכון שאר השדות
+                    Object.assign(user, {
+                        ...userData,
+                        // וידוא שהשדות החשובים לא נדרסים אם יש להם ערכים תקינים
+                        level: user.level !== undefined ? user.level : FitnessLevel.Beginner,
+                        dateJoined: user.dateJoined || new Date().toISOString()
+                    });
                 }
             } catch (error) {
                 console.error('Failed to fetch user details:', error);
@@ -255,20 +275,117 @@ export const updateUserProfile = createAsyncThunk(
                 return rejectWithValue('User not authenticated');
             }
             
+            // שמירת העתק של המשתמש הנוכחי למקרה של כישלון
+            const originalUser = { ...currentUser };
+            
             // יצירת FormData לשליחת הנתונים כולל קבצים
             const formData = new FormData();
             
-            // הוספת כל השדות שהתקבלו לעדכון
-            Object.entries(userData).forEach(([key, value]) => {
-                // אם זה קובץ תמונה, נטפל בו בנפרד
-                if (key === 'profilePictureFile' && value instanceof File) {
-                    formData.append('file', value as File);
-                } 
-                // אחרת נוסיף את השדה כרגיל
-                else if (key !== 'profilePictureFile' && value !== undefined) {
-                    formData.append(key, String(value));
+            // רשימת שדות שאנחנו רוצים לשלוח לשרת
+            const allowedFields = [
+                'userId', 'firstName', 'lastName', 'email', 
+                'bio', 'goals', 'phoneNumber', 'status'
+            ];
+            
+            // קודם כל, נוסיף את כל פרטי המשתמש המקוריים שמותר לשלוח
+            Object.entries(currentUser).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && allowedFields.includes(key)) {
+                    if (typeof value === 'number') {
+                        formData.append(key, value.toString());
+                    } else if (typeof value === 'object' && value instanceof Date) {
+                        formData.append(key, value.toISOString());
+                    } else {
+                        formData.append(key, String(value));
+                    }
                 }
             });
+            
+            // טיפול מיוחד ברמת הכושר - נוודא שהיא נשלחת כמספר
+            if (currentUser.level !== undefined && currentUser.level !== null) {
+                formData.append('level', currentUser.level.toString());
+            }
+            
+            // טיפול מיוחד בתאריך ההצטרפות - נוודא שהוא נשלח בפורמט הנכון
+            if (currentUser.dateJoined) {
+                // אם זה כבר מחרוזת ISO, נשתמש בה כמו שהיא
+                if (typeof currentUser.dateJoined === 'string') {
+                    formData.append('dateJoined', currentUser.dateJoined);
+                } 
+                // אם זה אובייקט Date, נמיר אותו למחרוזת ISO
+                else if (typeof currentUser.dateJoined === 'object') {
+                    try {
+                        // ננסה להמיר את התאריך למחרוזת ISO
+                        const dateStr = new Date(currentUser.dateJoined as any).toISOString();
+                        formData.append('dateJoined', dateStr);
+                    } catch (e) {
+                        // אם יש שגיאה, נשלח את התאריך כמחרוזת רגילה
+                        formData.append('dateJoined', String(currentUser.dateJoined));
+                    }
+                }
+            }
+            
+            // כעת נעדכן רק את השדות שהמשתמש שינה ושמותר לשלוח
+            Object.entries(userData).forEach(([key, value]) => {
+                if (value !== undefined && value !== null) {
+                    // אם זה קובץ תמונה חדש, נטפל בו בנפרד
+                    if (key === 'profilePictureFile' && typeof value === 'object' && 'name' in value && 'type' in value) {
+                        formData.append('file', value as File);
+                    } 
+                    // טיפול מיוחד ברמת הכושר
+                    else if (key === 'level') {
+                        // וידוא שרמת הכושר נשלחת כמספר
+                        const levelValue = Number(value);
+                        formData.append('level', levelValue.toString());
+                        console.log('Setting level to:', levelValue);
+                    }
+                    // טיפול מיוחד בתאריך ההצטרפות
+                    else if (key === 'dateJoined') {
+                        if (typeof value === 'string') {
+                            formData.append('dateJoined', value);
+                        } else if (typeof value === 'object') {
+                            try {
+                                // ננסה להמיר את התאריך למחרוזת ISO
+                                const dateStr = new Date(value as any).toISOString();
+                                formData.append('dateJoined', dateStr);
+                            } catch (e) {
+                                // אם יש שגיאה, נשלח את התאריך כמחרוזת רגילה
+                                formData.append('dateJoined', String(value));
+                            }
+                        } else {
+                            formData.append('dateJoined', String(value));
+                        }
+                    }
+                    // אם זה שדה מספרי, נוודא שהוא נשלח כמחרוזת
+                    else if (allowedFields.includes(key) && typeof value === 'number') {
+                        formData.append(key, value.toString());
+                    }
+                    // אם זה אובייקט Date, נשלח אותו כמחרוזת ISO
+                    else if (allowedFields.includes(key) && typeof value === 'object' && value instanceof Date) {
+                        formData.append(key, value.toISOString());
+                    }
+                    // אחרת נוסיף את השדה כרגיל אם הוא מותר
+                    else if (allowedFields.includes(key) && key !== 'profilePictureFile' && key !== 'profilePicture') {
+                        formData.append(key, String(value));
+                    }
+                }
+            });
+            
+            // וידוא שה-userId נשלח כחלק מהנתונים
+            if (!formData.has('userId') && currentUser.userId) {
+                formData.append('userId', currentUser.userId.toString());
+            }
+            
+            // טיפול בתמונת הפרופיל
+            if (userData.profilePictureFile && typeof userData.profilePictureFile === 'object' && 
+                'name' in userData.profilePictureFile && 'type' in userData.profilePictureFile) {
+                console.log('Sending new profile picture:', userData.profilePictureFile.name);
+            } else if (currentUser.profilePicture && !currentUser.profilePicture.includes('default-avatar')) {
+                // אם אין תמונה חדשה אבל יש תמונה קיימת, נציין זאת בלוג
+                console.log('Using existing profile picture:', currentUser.profilePicture);
+                // לא ננסה לשלוח את התמונה הקיימת כי זה יכול לגרום לבעיות
+            }
+            
+            console.log('Updating user profile with data:', Object.fromEntries(formData.entries()));
             
             // שליחת הבקשה לעדכון פרטי המשתמש
             const response = await axios.put(
@@ -282,6 +399,8 @@ export const updateUserProfile = createAsyncThunk(
                 }
             );
             
+            console.log('Update response:', response.data);
+            
             // שליפת פרטי המשתמש המעודכנים
             const updatedUserResponse = await axios.get(
                 `${process.env.REACT_APP_API_URL}/api/User/${currentUser.userId}`,
@@ -292,11 +411,31 @@ export const updateUserProfile = createAsyncThunk(
                 }
             );
             
-            return updatedUserResponse.data;
+            // וידוא שהנתונים החשובים נשמרים גם אם השרת לא החזיר אותם
+            const updatedUser = updatedUserResponse.data;
+            
+            // אם השרת לא החזיר רמת כושר, נשתמש בערך המקורי
+            if (updatedUser.level === undefined || updatedUser.level === null) {
+                updatedUser.level = originalUser.level;
+                console.log('Using original level:', originalUser.level);
+            } else {
+                // המרת רמת הכושר למספר ואז ל-FitnessLevel
+                updatedUser.level = Number(updatedUser.level) as unknown as FitnessLevel;
+                console.log('Using updated level:', updatedUser.level);
+            }
+            
+            // אם השרת לא החזיר תאריך הצטרפות, נשתמש בערך המקורי
+            if (!updatedUser.dateJoined) {
+                updatedUser.dateJoined = originalUser.dateJoined;
+            }
+            
+            return updatedUser;
         } catch (error) {
             console.error('Failed to update user profile:', error);
             if (axios.isAxiosError(error)) {
-                return rejectWithValue(error.response?.data || 'Failed to update profile');
+                console.error('Error response:', error.response?.data);
+                console.error('Error status:', error.response?.status);
+                return rejectWithValue(error.response?.data?.message || error.response?.data || 'Failed to update profile');
             }
             return rejectWithValue('Failed to update profile');
         }
@@ -375,12 +514,32 @@ const authSlice = createSlice({
             })
             .addCase(updateUserProfile.fulfilled, (state, action) => {
                 state.loading = false;
+                
+                // וידוא שהנתונים החשובים נשמרים
+                if (state.currentUser) {
+                    // אם אין רמת כושר בנתונים המעודכנים, נשמור את הערך הקיים
+                    if (action.payload.level === undefined || action.payload.level === null) {
+                        action.payload.level = state.currentUser.level;
+                        console.log('Reducer: Using current level:', state.currentUser.level);
+                    } else {
+                        // המרת רמת הכושר למספר ואז ל-FitnessLevel
+                        action.payload.level = Number(action.payload.level) as unknown as FitnessLevel;
+                        console.log('Reducer: Using payload level:', action.payload.level);
+                    }
+                    
+                    // אם אין תאריך הצטרפות בנתונים המעודכנים, נשמור את הערך הקיים
+                    if (!action.payload.dateJoined && state.currentUser.dateJoined) {
+                        action.payload.dateJoined = state.currentUser.dateJoined;
+                    }
+                }
+                
                 state.currentUser = action.payload;
                 state.error = null;
             })
             .addCase(updateUserProfile.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string || 'Failed to update profile';
+                // לא משנים את state.currentUser במקרה של כישלון
             });
     }
 });

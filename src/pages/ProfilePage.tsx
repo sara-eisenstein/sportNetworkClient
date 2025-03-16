@@ -18,18 +18,37 @@ const getProfileImageUrl = (userId: number | string) => {
 };
 
 // פונקציה עזר להמרת רמת כושר למחרוזת בעברית
-const getFitnessLevelText = (level: FitnessLevel): string => {
-    switch (level) {
-        case FitnessLevel.Beginner:
+const getFitnessLevelText = (level: FitnessLevel | number): string => {
+    // המרת הערך למספר אם הוא לא כבר מספר
+    const levelNum = typeof level === 'number' ? level : Number(level);
+    
+    console.log('Converting fitness level to text:', level, 'as number:', levelNum);
+    
+    // בדיקה לפי ערך מספרי
+    switch (levelNum) {
+        case 0:
             return 'מתחיל';
-        case FitnessLevel.Intermediate:
+        case 1:
             return 'בינוני';
-        case FitnessLevel.Advanced:
+        case 2:
             return 'מתקדם';
-        case FitnessLevel.Professional:
+        case 3:
             return 'מקצועי';
         default:
-            return 'לא ידוע';
+            // אם הערך לא תואם לאף אחד מהערכים המוכרים, ננסה להשתמש ב-enum
+            switch (level) {
+                case FitnessLevel.Beginner:
+                    return 'מתחיל';
+                case FitnessLevel.Intermediate:
+                    return 'בינוני';
+                case FitnessLevel.Advanced:
+                    return 'מתקדם';
+                case FitnessLevel.Professional:
+                    return 'מקצועי';
+                default:
+                    console.warn('Unknown fitness level:', level);
+                    return 'לא ידוע';
+            }
     }
 };
 
@@ -122,13 +141,21 @@ const ProfilePage: React.FC = () => {
                 email: formData.email,
                 bio: formData.bio,
                 goals: formData.goals,
-                level: formData.level
+                // וידוא שרמת הכושר נשלחת כמספר
+                level: Number(formData.level)
             };
+            
+            // הוספת תאריך ההצטרפות המקורי כדי שלא יתאפס
+            if (currentUser && currentUser.dateJoined) {
+                updateData.dateJoined = currentUser.dateJoined;
+            }
             
             // אם יש קובץ תמונה חדש, נוסיף אותו לנתונים
             if (profilePictureFile) {
                 updateData.profilePictureFile = profilePictureFile;
             }
+            
+            console.log('Sending update data:', updateData);
             
             // שליחת הנתונים לעדכון
             await dispatch(updateUserProfile(updateData));
