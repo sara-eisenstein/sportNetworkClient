@@ -166,7 +166,7 @@ export const register = createAsyncThunk(
                 email: registerData.email,
                 bio: registerData.bio || '',
                 profilePicture: '/default-avatar.png',
-                level: FitnessLevel.Beginner,
+                level: registerData.level,
                 goals: registerData.goals || '',
                 dateJoined: new Date().toISOString(),
                 status: true
