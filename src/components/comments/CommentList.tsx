@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../../store/store';
 import { fetchComments, createComment, editComment, removeComment } from '../../store/slices/commentSlice';
 import { Comment } from '../../models/comment';
+import { getUserImage } from '../../services/userService';
 
 interface Props {
     postId: number;
@@ -15,10 +16,49 @@ const CommentList: React.FC<Props> = ({ postId }) => {
     const [newComment, setNewComment] = useState('');
     const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
     const [editContent, setEditContent] = useState('');
+    const [profileImages, setProfileImages] = useState<{ [key: number]: string }>({});
 
     useEffect(() => {
         dispatch(fetchComments(postId));
     }, [dispatch, postId]);
+
+    // טעינת תמונות פרופיל לכל התגובות
+    useEffect(() => {
+        const loadProfileImages = async () => {
+            const imagePromises = comments.map(async (comment) => {
+                if (comment.userId && !profileImages[comment.userId]) {
+                    try {
+                        const imageUrl = await getUserImage(comment.userId);
+                        setProfileImages(prev => ({
+                            ...prev,
+                            [comment.userId]: imageUrl
+                        }));
+                    } catch (error) {
+                        console.error(`Failed to load profile image for user ${comment.userId}:`, error);
+                        setProfileImages(prev => ({
+                            ...prev,
+                            [comment.userId]: '/default-avatar.png'
+                        }));
+                    }
+                }
+            });
+
+            await Promise.all(imagePromises);
+        };
+
+        loadProfileImages();
+    }, [comments]);
+
+    // ניקוי URLs כשהקומפוננטה מתפרקת
+    useEffect(() => {
+        return () => {
+            Object.values(profileImages).forEach(url => {
+                if (url.startsWith('blob:')) {
+                    URL.revokeObjectURL(url);
+                }
+            });
+        };
+    }, [profileImages]);
 
     const handleSubmitComment = (e: React.FormEvent) => {
         e.preventDefault();
@@ -92,9 +132,12 @@ const CommentList: React.FC<Props> = ({ postId }) => {
                         <div key={comment.commentId} className="comment">
                             <div className="comment-header">
                                 <img 
-                                    src={comment.userProfilePicture || '/default-avatar.png'} 
+                                    src={profileImages[comment.userId] || '/default-avatar.png'}
                                     alt={comment.userName} 
                                     className="user-avatar"
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).src = '/default-avatar.png';
+                                    }}
                                 />
                                 <span className="user-name">{comment.userName}</span>
                                 <span className="comment-date">
