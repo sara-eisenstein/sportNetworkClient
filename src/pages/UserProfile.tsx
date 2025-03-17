@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { PublicUserDto, FitnessLevel } from '../models/user';
 import { Post } from '../models/post';
-import { getPublicUserData } from '../services/userService';
+import { getPublicUserData, getUserImage } from '../services/userService';
 import { getUserPosts } from '../services/postService';
 import PostCard from '../components/posts/PostCard';
 import { followUser, unfollowUser } from '../services/userService';
@@ -14,6 +14,7 @@ const UserProfile: React.FC = () => {
     const [posts, setPosts] = useState<Post[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [profileImageUrl, setProfileImageUrl] = useState<string>('/default-avatar.png');
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -25,6 +26,15 @@ const UserProfile: React.FC = () => {
 
                 const userData = await getPublicUserData(parseInt(userId));
                 setUser(userData);
+
+                // טעינת תמונת הפרופיל
+                try {
+                    const imageUrl = await getUserImage(parseInt(userId));
+                    setProfileImageUrl(imageUrl);
+                } catch (imageError) {
+                    console.error('שגיאה בטעינת תמונת פרופיל:', imageError);
+                    setProfileImageUrl('/default-avatar.png');
+                }
 
                 const userPosts = await getUserPosts(parseInt(userId));
                 setPosts(userPosts);
@@ -85,9 +95,15 @@ const UserProfile: React.FC = () => {
         <div className="user-profile">
             <div className="profile-header">
                 <img 
-                    src={user.profilePicture || '/default-avatar.png'} 
+                    src={profileImageUrl}
                     alt={`${user.firstName} ${user.lastName}`}
                     className="profile-picture"
+                    onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        if (target.src !== '/default-avatar.png') {
+                            target.src = '/default-avatar.png';
+                        }
+                    }}
                 />
                 <div className="profile-info">
                     <h1>{user.firstName} {user.lastName}</h1>
