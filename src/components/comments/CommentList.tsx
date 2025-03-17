@@ -11,6 +11,7 @@ interface Props {
 const CommentList: React.FC<Props> = ({ postId }) => {
     const dispatch = useDispatch<AppDispatch>();
     const { comments, loading, error } = useSelector((state: RootState) => state.comments);
+    const currentUser = useSelector((state: RootState) => state.auth.currentUser);
     const [newComment, setNewComment] = useState('');
     const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
     const [editContent, setEditContent] = useState('');
@@ -21,13 +22,23 @@ const CommentList: React.FC<Props> = ({ postId }) => {
 
     const handleSubmitComment = (e: React.FormEvent) => {
         e.preventDefault();
-        if (newComment.trim()) {
+        if (newComment.trim() && currentUser?.userId) {
+            console.log('🔄 Submitting new comment:', {
+                postId,
+                userId: currentUser.userId,
+                content: newComment.trim()
+            });
             dispatch(createComment({
                 postId,
-                userId: 0, // יש להחליף עם המזהה של המשתמש המחובר
+                userId: currentUser.userId,
                 content: newComment.trim()
             }));
             setNewComment('');
+        } else {
+            console.log('❌ Cannot submit comment:', {
+                hasContent: !!newComment.trim(),
+                hasUserId: !!currentUser?.userId
+            });
         }
     };
 
@@ -72,51 +83,57 @@ const CommentList: React.FC<Props> = ({ postId }) => {
 
             {/* רשימת התגובות */}
             <div className="comments-list">
-                {comments.map(comment => (
-                    <div key={comment.commentId} className="comment">
-                        <div className="comment-header">
-                            <img 
-                                src={comment.userProfilePicture || '/default-avatar.png'} 
-                                alt={comment.userName} 
-                                className="user-avatar"
-                            />
-                            <span className="user-name">{comment.userName}</span>
-                            <span className="comment-date">
-                                {new Date(comment.dateCreated).toLocaleDateString('he-IL')}
-                            </span>
-                        </div>
-                        
-                        {editingCommentId === comment.commentId ? (
-                            <div className="edit-comment">
-                                <textarea
-                                    value={editContent}
-                                    onChange={(e) => setEditContent(e.target.value)}
-                                    rows={3}
-                                />
-                                <div className="edit-actions">
-                                    <button onClick={() => handleSaveEdit(comment.commentId!)}>
-                                        שמור
-                                    </button>
-                                    <button onClick={() => setEditingCommentId(null)}>
-                                        ביטול
-                                    </button>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="comment-content">
-                                <p>{comment.content}</p>
-                                <div className="comment-actions">
-                                    <button onClick={() => handleStartEdit(comment)}>
-                                        ערוך
-                                    </button>
-                                    <button onClick={() => handleDelete(comment.commentId!)}>
-                                        מחק
-                                    </button>
-                                </div>
-                            </div>
-                        )}
+                {comments.length === 0 ? (
+                    <div className="no-comments">
+                        אין עדיין תגובות לפוסט זה. תהיה הראשון להגיב!
                     </div>
-                ))}
+                ) : (
+                    comments.map(comment => (
+                        <div key={comment.commentId} className="comment">
+                            <div className="comment-header">
+                                <img 
+                                    src={comment.userProfilePicture || '/default-avatar.png'} 
+                                    alt={comment.userName} 
+                                    className="user-avatar"
+                                />
+                                <span className="user-name">{comment.userName}</span>
+                                <span className="comment-date">
+                                    {new Date(comment.dateCreated).toLocaleDateString('he-IL')}
+                                </span>
+                            </div>
+                            
+                            {editingCommentId === comment.commentId ? (
+                                <div className="edit-comment">
+                                    <textarea
+                                        value={editContent}
+                                        onChange={(e) => setEditContent(e.target.value)}
+                                        rows={3}
+                                    />
+                                    <div className="edit-actions">
+                                        <button onClick={() => handleSaveEdit(comment.commentId!)}>
+                                            שמור
+                                        </button>
+                                        <button onClick={() => setEditingCommentId(null)}>
+                                            ביטול
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="comment-content">
+                                    <p>{comment.content}</p>
+                                    <div className="comment-actions">
+                                        <button onClick={() => handleStartEdit(comment)}>
+                                            ערוך
+                                        </button>
+                                        <button onClick={() => handleDelete(comment.commentId!)}>
+                                            מחק
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ))
+                )}
             </div>
         </div>
     );

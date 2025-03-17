@@ -115,4 +115,14 @@
     background-color: #dc3545;
     color: white;
     border: none;
+}
+
+.no-comments {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+    font-style: italic;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin: 10px 0;
 } 
