@@ -6,6 +6,7 @@ import HomePage from '../pages/HomePage';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import ProfilePage from '../pages/ProfilePage';
+import UserProfile from '../pages/UserProfile';
 import PrivateRoute from '../components/auth/PrivateRoute';
 
 // Placeholder components - יש להחליף אותם בקומפוננטים האמיתיים
@@ -25,6 +26,7 @@ const AppRoutes: React.FC = () => {
             <Route path="/register" element={
                 currentUser ? <Navigate to="/" replace /> : <RegisterPage />
             } />
+            <Route path="/user/:userId" element={<UserProfile />} />
 
             {/* ניתובים מאובטחים */}
             <Route path="/profile" element={

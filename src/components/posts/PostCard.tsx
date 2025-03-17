@@ -9,6 +9,7 @@ import { getUserImage, getPublicUserData } from '../../services/userService';
 import { getPostLikeCount } from '../../services/postService';
 import { PublicUserDto } from '../../models/user';
 import './PostCard.css';
+import { Link } from 'react-router-dom';
 
 interface Props {
     post: Post;
@@ -241,9 +242,9 @@ const PostCard: React.FC<Props> = ({ post, isOwnPost = false }) => {
                     }}
                 />
                 <div className="post-info">
-                    <span className="user-name">
+                    <Link to={`/user/${post.userId}`} className="user-name">
                         {author ? `${author.firstName} ${author.lastName}` : 'טוען...'}
-                    </span>
+                    </Link>
                     <span className="post-date">
                         {post.createdDate ? new Date(post.createdDate).toLocaleDateString('he-IL') : 'תאריך לא זמין'}
                     </span>

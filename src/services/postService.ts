@@ -359,3 +359,22 @@ export const getPostImage = async (postId: number): Promise<string> => {
         return '/no-image-placeholder.png';
     }
 };
+
+/**
+ * מביא את כל הפוסטים של משתמש ספציפי
+ */
+export const getUserPosts = async (userId: number): Promise<Post[]> => {
+    try {
+        console.log(`🔄 Fetching posts for user ${userId}`);
+        const response = await axios.get<Post[]>(`${API_URL}/api/Post/user/${userId}`);
+        console.log(`✅ Successfully fetched ${response.data.length} posts for user ${userId}`);
+        return response.data;
+    } catch (error: any) {
+        console.error(`❌ Failed to fetch posts for user ${userId}:`, {
+            error: error.message,
+            status: error.response?.status,
+            data: error.response?.data
+        });
+        throw error;
+    }
+};

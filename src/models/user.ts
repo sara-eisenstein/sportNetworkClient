@@ -28,5 +28,6 @@ export interface PublicUserDto {
     goals: string;
     bio: string;
     dateJoined: string;
+    isFollowing?: boolean;
 }
 

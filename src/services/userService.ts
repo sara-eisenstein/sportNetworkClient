@@ -120,3 +120,47 @@ export const getPublicUserData = async (userId: number): Promise<PublicUserDto> 
         throw error;
     }
 };
+
+/**
+ * עוקב אחרי משתמש
+ */
+export const followUser = async (userId: number): Promise<void> => {
+    try {
+        console.log(`🔄 Following user ${userId}`);
+        await axios.post(`${API_URL}/api/User/${userId}/follow`, {}, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+        });
+        console.log(`✅ Successfully followed user ${userId}`);
+    } catch (error: any) {
+        console.error(`❌ Failed to follow user ${userId}:`, {
+            error: error.message,
+            status: error.response?.status,
+            data: error.response?.data
+        });
+        throw error;
+    }
+};
+
+/**
+ * מפסיק לעקוב אחרי משתמש
+ */
+export const unfollowUser = async (userId: number): Promise<void> => {
+    try {
+        console.log(`🔄 Unfollowing user ${userId}`);
+        await axios.post(`${API_URL}/api/User/${userId}/unfollow`, {}, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+        });
+        console.log(`✅ Successfully unfollowed user ${userId}`);
+    } catch (error: any) {
+        console.error(`❌ Failed to unfollow user ${userId}:`, {
+            error: error.message,
+            status: error.response?.status,
+            data: error.response?.data
+        });
+        throw error;
+    }
+};
