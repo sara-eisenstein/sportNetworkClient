@@ -89,7 +89,15 @@ const CommentList: React.FC<Props> = ({ postId }) => {
 
     const handleSaveEdit = (commentId: number) => {
         if (editContent.trim()) {
-            dispatch(editComment({ commentId, content: editContent.trim() }));
+            const formData = new FormData();
+            formData.append('CommentId', commentId.toString());
+            formData.append('Content', editContent.trim());
+            
+            dispatch(editComment({ 
+                commentId, 
+                content: editContent.trim(),
+                formData 
+            }));
             setEditingCommentId(null);
             setEditContent('');
         }
@@ -164,14 +172,16 @@ const CommentList: React.FC<Props> = ({ postId }) => {
                             ) : (
                                 <div className="comment-content">
                                     <p>{comment.content}</p>
-                                    <div className="comment-actions">
-                                        <button onClick={() => handleStartEdit(comment)}>
-                                            ערוך
-                                        </button>
-                                        <button onClick={() => handleDelete(comment.commentId!)}>
-                                            מחק
-                                        </button>
-                                    </div>
+                                    {currentUser?.userId === comment.userId && (
+                                        <div className="comment-actions">
+                                            <button onClick={() => handleStartEdit(comment)}>
+                                                ערוך
+                                            </button>
+                                            <button onClick={() => handleDelete(comment.commentId!)}>
+                                                מחק
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>

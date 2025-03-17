@@ -89,10 +89,12 @@ export const addComment = async (comment: Omit<Comment, "commentId" | "dateCreat
 /**
  * עדכון תגובה קיימת
  */
-export const updateComment = async (commentId: number, content: string): Promise<Comment> => {
-    const response = await axios.put<Comment>(`${API_URL}/api/Comment/${commentId}`, { content }, {
+export const updateComment = async (commentId: number, formData: FormData): Promise<Comment> => {
+    const token = localStorage.getItem("token");
+    const response = await axios.put<Comment>(`${API_URL}/api/Comment/${commentId}`, formData, {
         headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
         },
     });
     return response.data;

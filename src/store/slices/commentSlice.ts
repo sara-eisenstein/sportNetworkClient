@@ -38,9 +38,9 @@ export const createComment = createAsyncThunk(
 
 export const editComment = createAsyncThunk(
     "comments/edit",
-    async ({ commentId, content }: { commentId: number; content: string }, thunkAPI) => {
+    async ({ commentId, content, formData }: { commentId: number; content: string; formData: FormData }, thunkAPI) => {
         try {
-            return await updateComment(commentId, content);
+            return await updateComment(commentId, formData);
         } catch (error) {
             return thunkAPI.rejectWithValue("Failed to update comment");
         }
