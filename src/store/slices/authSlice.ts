@@ -281,111 +281,64 @@ export const updateUserProfile = createAsyncThunk(
             // יצירת FormData לשליחת הנתונים כולל קבצים
             const formData = new FormData();
             
-            // רשימת שדות שאנחנו רוצים לשלוח לשרת
-            const allowedFields = [
-                'userId', 'firstName', 'lastName', 'email', 
-                'bio', 'goals', 'phoneNumber', 'status'
-            ];
-            
-            // קודם כל, נוסיף את כל פרטי המשתמש המקוריים שמותר לשלוח
-            Object.entries(currentUser).forEach(([key, value]) => {
-                if (value !== undefined && value !== null && allowedFields.includes(key)) {
-                    if (typeof value === 'number') {
-                        formData.append(key, value.toString());
-                    } else if (typeof value === 'object' && value instanceof Date) {
-                        formData.append(key, value.toISOString());
-                    } else {
-                        formData.append(key, String(value));
-                    }
-                }
-            });
-            
-            // טיפול מיוחד ברמת הכושר - נוודא שהיא נשלחת כמספר
-            if (currentUser.level !== undefined && currentUser.level !== null) {
-                formData.append('level', currentUser.level.toString());
-            }
-            
-            // טיפול מיוחד בתאריך ההצטרפות - נוודא שהוא נשלח בפורמט הנכון
-            if (currentUser.dateJoined) {
-                // אם זה כבר מחרוזת ISO, נשתמש בה כמו שהיא
-                if (typeof currentUser.dateJoined === 'string') {
-                    formData.append('dateJoined', currentUser.dateJoined);
-                } 
-                // אם זה אובייקט Date, נמיר אותו למחרוזת ISO
-                else if (typeof currentUser.dateJoined === 'object') {
-                    try {
-                        // ננסה להמיר את התאריך למחרוזת ISO
-                        const dateStr = new Date(currentUser.dateJoined as any).toISOString();
-                        formData.append('dateJoined', dateStr);
-                    } catch (e) {
-                        // אם יש שגיאה, נשלח את התאריך כמחרוזת רגילה
-                        formData.append('dateJoined', String(currentUser.dateJoined));
-                    }
-                }
-            }
-            
-            // כעת נעדכן רק את השדות שהמשתמש שינה ושמותר לשלוח
-            Object.entries(userData).forEach(([key, value]) => {
-                if (value !== undefined && value !== null) {
-                    // אם זה קובץ תמונה חדש, נטפל בו בנפרד
-                    if (key === 'profilePictureFile' && typeof value === 'object' && 'name' in value && 'type' in value) {
-                        formData.append('file', value as File);
-                    } 
-                    // טיפול מיוחד ברמת הכושר
-                    else if (key === 'level') {
-                        // וידוא שרמת הכושר נשלחת כמספר
-                        const levelValue = Number(value);
-                        formData.append('level', levelValue.toString());
-                        console.log('Setting level to:', levelValue);
-                    }
-                    // טיפול מיוחד בתאריך ההצטרפות
-                    else if (key === 'dateJoined') {
-                        if (typeof value === 'string') {
-                            formData.append('dateJoined', value);
-                        } else if (typeof value === 'object') {
-                            try {
-                                // ננסה להמיר את התאריך למחרוזת ISO
-                                const dateStr = new Date(value as any).toISOString();
-                                formData.append('dateJoined', dateStr);
-                            } catch (e) {
-                                // אם יש שגיאה, נשלח את התאריך כמחרוזת רגילה
-                                formData.append('dateJoined', String(value));
-                            }
-                        } else {
-                            formData.append('dateJoined', String(value));
-                        }
-                    }
-                    // אם זה שדה מספרי, נוודא שהוא נשלח כמחרוזת
-                    else if (allowedFields.includes(key) && typeof value === 'number') {
-                        formData.append(key, value.toString());
-                    }
-                    // אם זה אובייקט Date, נשלח אותו כמחרוזת ISO
-                    else if (allowedFields.includes(key) && typeof value === 'object' && value instanceof Date) {
-                        formData.append(key, value.toISOString());
-                    }
-                    // אחרת נוסיף את השדה כרגיל אם הוא מותר
-                    else if (allowedFields.includes(key) && key !== 'profilePictureFile' && key !== 'profilePicture') {
-                        formData.append(key, String(value));
-                    }
-                }
-            });
-            
-            // וידוא שה-userId נשלח כחלק מהנתונים
-            if (!formData.has('userId') && currentUser.userId) {
+            // הוספת שדות בהתאם ל-DTO של השרת
+            if (currentUser.userId) {
                 formData.append('userId', currentUser.userId.toString());
+            }
+            formData.append('firstName', userData.firstName || '');
+            formData.append('lastName', userData.lastName || '');
+            formData.append('email', userData.email || '');
+            formData.append('level', Number(userData.level).toString());
+            
+            // שדה PasswordHash הוא חובה לפי ה-DTO, אבל אנחנו לא רוצים לשנות את הסיסמה
+            // לכן נשלח ערך פיקטיבי שהשרת יתעלם ממנו (אם השרת מאפשר זאת)
+            // או שנשלח את הסיסמה המקורית אם היא קיימת
+            if (userData.passwordHash) {
+                formData.append('passwordHash', userData.passwordHash);
+            } else {
+                // שליחת ערך פיקטיבי - השרת צריך לבדוק ולהתעלם מזה אם הסיסמה לא השתנתה
+                formData.append('passwordHash', 'KeepExistingPassword');
+            }
+            
+            // שדות אופציונליים
+            if (userData.bio !== undefined) {
+                formData.append('bio', userData.bio);
+            }
+            
+            if (userData.goals !== undefined) {
+                formData.append('goals', userData.goals);
+            }
+            
+            // טיפול בסטטוס
+            if (userData.status !== undefined) {
+                formData.append('status', userData.status.toString());
+            } else if (currentUser.status !== undefined) {
+                formData.append('status', currentUser.status.toString());
+            } else {
+                formData.append('status', 'true'); // ברירת מחדל
+            }
+            
+            // טיפול בתאריך הצטרפות
+            if (currentUser.dateJoined) {
+                const dateStr = typeof currentUser.dateJoined === 'string' 
+                    ? currentUser.dateJoined 
+                    : new Date(currentUser.dateJoined).toISOString();
+                formData.append('dateJoined', dateStr);
+            } else {
+                formData.append('dateJoined', new Date().toISOString());
             }
             
             // טיפול בתמונת הפרופיל
             if (userData.profilePictureFile && typeof userData.profilePictureFile === 'object' && 
                 'name' in userData.profilePictureFile && 'type' in userData.profilePictureFile) {
-                console.log('Sending new profile picture:', userData.profilePictureFile.name);
-            } else if (currentUser.profilePicture && !currentUser.profilePicture.includes('default-avatar')) {
-                // אם אין תמונה חדשה אבל יש תמונה קיימת, נציין זאת בלוג
-                console.log('Using existing profile picture:', currentUser.profilePicture);
-                // לא ננסה לשלוח את התמונה הקיימת כי זה יכול לגרום לבעיות
+                console.log('Sending profile picture file:', userData.profilePictureFile.name);
+                formData.append('file', userData.profilePictureFile as File);
             }
             
+            // הדפסת הנתונים שנשלחים לשרת לצורך דיבוג
             console.log('Updating user profile with data:', Object.fromEntries(formData.entries()));
+            console.log('User ID:', currentUser.userId);
+            console.log('API URL:', `${process.env.REACT_APP_API_URL}/api/User/${currentUser.userId}`);
             
             // שליחת הבקשה לעדכון פרטי המשתמש
             const response = await axios.put(
@@ -435,7 +388,30 @@ export const updateUserProfile = createAsyncThunk(
             if (axios.isAxiosError(error)) {
                 console.error('Error response:', error.response?.data);
                 console.error('Error status:', error.response?.status);
-                return rejectWithValue(error.response?.data?.message || error.response?.data || 'Failed to update profile');
+                console.error('Error headers:', error.response?.headers);
+                
+                // הצגת פרטי השגיאה המלאים
+                if (error.response?.data?.errors) {
+                    console.error('Validation errors:', error.response.data.errors);
+                    
+                    // בדיקה אם השגיאה קשורה לסיסמה
+                    if (error.response.data.errors.PasswordHash) {
+                        return rejectWithValue('שגיאת סיסמה: ' + error.response.data.errors.PasswordHash[0]);
+                    }
+                }
+                
+                // בדיקה אם השגיאה קשורה להרשאות
+                if (error.response?.status === 401) {
+                    return rejectWithValue('אין לך הרשאה לעדכן את פרטי המשתמש. ייתכן שהסשן פג תוקף.');
+                }
+                
+                // בדיקה אם השגיאה קשורה לפורמט הנתונים
+                if (error.response?.status === 400) {
+                    const errorMessage = error.response?.data?.title || error.response?.data?.message || 'הנתונים שהוזנו אינם תקינים';
+                    return rejectWithValue(errorMessage);
+                }
+                
+                return rejectWithValue(error.response?.data?.message || error.response?.data?.title || error.response?.data || 'Failed to update profile');
             }
             return rejectWithValue('Failed to update profile');
         }

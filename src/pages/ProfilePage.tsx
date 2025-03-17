@@ -87,7 +87,7 @@ export const FitnessLevelSelector: React.FC<FitnessLevelSelectorProps> = ({
 };
 
 const ProfilePage: React.FC = () => {
-    const { currentUser, loading } = useSelector((state: RootState) => state.auth);
+    const { currentUser, loading, error } = useSelector((state: RootState) => state.auth);
     const dispatch = useDispatch<AppDispatch>();
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState({
@@ -97,10 +97,16 @@ const ProfilePage: React.FC = () => {
         bio: '',
         profilePicture: '',
         goals: '',
-        level: FitnessLevel.Beginner
+        level: FitnessLevel.Beginner,
+        passwordHash: '',
+        confirmPassword: ''
     });
     const [profilePictureFile, setProfilePictureFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string>('');
+    const [isLoadingProfileImage, setIsLoadingProfileImage] = useState(false);
+    const [updateError, setUpdateError] = useState<string | null>(null);
+    const [showPassword, setShowPassword] = useState(false);
+    const { token } = useSelector((state: RootState) => state.auth);
 
     // עדכון נתוני הטופס כאשר המשתמש הנוכחי משתנה
     useEffect(() => {
@@ -112,15 +118,73 @@ const ProfilePage: React.FC = () => {
                 bio: currentUser.bio || '',
                 profilePicture: currentUser.profilePicture || '',
                 goals: currentUser.goals || '',
-                level: currentUser.level || FitnessLevel.Beginner
+                level: currentUser.level || FitnessLevel.Beginner,
+                passwordHash: '',
+                confirmPassword: ''
             });
             
             // איפוס ה-preview כאשר יוצאים ממצב עריכה
             if (!isEditing) {
                 setPreviewUrl('');
+                setProfilePictureFile(null);
+                setShowPassword(false);
             }
         }
     }, [currentUser, isEditing]);
+
+    // איפוס הודעת השגיאה כאשר המשתמש מתחיל לערוך
+    useEffect(() => {
+        if (isEditing) {
+            setUpdateError(null);
+        }
+    }, [isEditing]);
+
+    // פונקציה לטעינת התמונה הקיימת כקובץ
+    const fetchExistingProfileImage = async () => {
+        if (!currentUser?.userId) return null;
+        
+        try {
+            setIsLoadingProfileImage(true);
+            const response = await fetch(
+                `${process.env.REACT_APP_API_URL}/getUserImage/${currentUser.userId}`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }
+            );
+            
+            if (!response.ok) {
+                console.error('Failed to fetch profile image:', response.statusText);
+                return null;
+            }
+            
+            const blob = await response.blob();
+            // שימוש בסוג הקובץ המקורי מה-Content-Type
+            const contentType = response.headers.get('Content-Type') || blob.type;
+            // קביעת סיומת הקובץ לפי סוג התוכן
+            const extension = contentType.split('/')[1] || '';
+            const fileName = `profile_${currentUser.userId}_${Date.now()}.${extension}`;
+            
+            const file = new File([blob], fileName, { 
+                type: contentType,
+                lastModified: Date.now()
+            });
+            
+            console.log('Successfully fetched existing profile image:', {
+                name: file.name,
+                size: file.size,
+                type: file.type
+            });
+            
+            return file;
+        } catch (error) {
+            console.error('Error fetching profile image:', error);
+            return null;
+        } finally {
+            setIsLoadingProfileImage(false);
+        }
+    };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -132,41 +196,74 @@ const ProfilePage: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setUpdateError(null);
+        
+        // בדיקת תקינות הסיסמה אם המשתמש הזין סיסמה חדשה
+        if (formData.passwordHash) {
+            if (formData.passwordHash.length < 8) {
+                setUpdateError('הסיסמה חייבת להכיל לפחות 8 תווים');
+                return;
+            }
+            
+            if (formData.passwordHash !== formData.confirmPassword) {
+                setUpdateError('הסיסמאות אינן תואמות');
+                return;
+            }
+        }
         
         try {
-            // יצירת אובייקט עם הנתונים לעדכון
+            // יצירת אובייקט עם הנתונים לעדכון - רק השדות הבסיסיים
             const updateData: any = {
                 firstName: formData.firstName,
                 lastName: formData.lastName,
                 email: formData.email,
                 bio: formData.bio,
                 goals: formData.goals,
-                // וידוא שרמת הכושר נשלחת כמספר
                 level: Number(formData.level)
             };
             
-            // הוספת תאריך ההצטרפות המקורי כדי שלא יתאפס
-            if (currentUser && currentUser.dateJoined) {
-                updateData.dateJoined = currentUser.dateJoined;
+            // הוספת סיסמה חדשה אם המשתמש הזין אותה
+            if (formData.passwordHash) {
+                updateData.passwordHash = formData.passwordHash;
             }
             
-            // אם יש קובץ תמונה חדש, נוסיף אותו לנתונים
+            // טיפול בתמונת הפרופיל
             if (profilePictureFile) {
+                // אם המשתמש בחר תמונה חדשה, נשתמש בה
                 updateData.profilePictureFile = profilePictureFile;
+                console.log('Using new profile picture file:', profilePictureFile.name);
+            } else if (currentUser && currentUser.profilePicture && !currentUser.profilePicture.includes('default-avatar')) {
+                // אם אין תמונה חדשה, ננסה לטעון את התמונה הקיימת כקובץ
+                console.log('Trying to fetch existing profile image as file...');
+                const existingImageFile = await fetchExistingProfileImage();
+                
+                if (existingImageFile) {
+                    updateData.profilePictureFile = existingImageFile;
+                    console.log('Using existing profile image as file:', existingImageFile.name);
+                } else {
+                    console.log('Could not fetch existing profile image, profile picture will not be updated');
+                }
             }
             
             console.log('Sending update data:', updateData);
             
             // שליחת הנתונים לעדכון
-            await dispatch(updateUserProfile(updateData));
+            const result = await dispatch(updateUserProfile(updateData));
+            
+            if (updateUserProfile.rejected.match(result)) {
+                // אם העדכון נכשל, נציג את השגיאה
+                setUpdateError(result.payload as string);
+                return;
+            }
             
             // סגירת מצב עריכה
             setIsEditing(false);
             setProfilePictureFile(null);
             setPreviewUrl('');
+            setShowPassword(false);
         } catch (error) {
             console.error('Error updating profile:', error);
-            // כאן אפשר להוסיף הודעת שגיאה למשתמש
+            setUpdateError('אירעה שגיאה בעדכון הפרופיל');
         }
     };
 
@@ -203,6 +300,12 @@ const ProfilePage: React.FC = () => {
                 
                 {isEditing ? (
                     <form onSubmit={handleSubmit} className="profile-form">
+                        {updateError && (
+                            <div className="error-message">
+                                {updateError}
+                            </div>
+                        )}
+                        
                         <div className="profile-picture-section">
                             <div className="profile-picture-container">
                                 <img 
@@ -291,6 +394,45 @@ const ProfilePage: React.FC = () => {
                             />
                         </div>
 
+                        <div className="password-section">
+                            <button 
+                                type="button" 
+                                className="toggle-password-button"
+                                onClick={() => setShowPassword(!showPassword)}
+                            >
+                                {showPassword ? 'הסתר שדות סיסמה' : 'שנה סיסמה'}
+                            </button>
+                            
+                            {showPassword && (
+                                <>
+                                    <div className="form-group">
+                                        <label htmlFor="passwordHash">סיסמה חדשה (השאר ריק אם אינך רוצה לשנות)</label>
+                                        <input
+                                            type="password"
+                                            id="passwordHash"
+                                            name="passwordHash"
+                                            value={formData.passwordHash}
+                                            onChange={handleChange}
+                                            minLength={8}
+                                        />
+                                        <small className="form-hint">הסיסמה חייבת להכיל לפחות 8 תווים</small>
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label htmlFor="confirmPassword">אימות סיסמה חדשה</label>
+                                        <input
+                                            type="password"
+                                            id="confirmPassword"
+                                            name="confirmPassword"
+                                            value={formData.confirmPassword}
+                                            onChange={handleChange}
+                                            minLength={8}
+                                        />
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
                         <div className="form-actions">
                             <button 
                                 type="submit" 
@@ -306,6 +448,7 @@ const ProfilePage: React.FC = () => {
                                     setIsEditing(false);
                                     setProfilePictureFile(null);
                                     setPreviewUrl('');
+                                    setShowPassword(false);
                                 }}
                                 disabled={loading}
                             >
@@ -321,7 +464,6 @@ const ProfilePage: React.FC = () => {
                                 alt="תמונת פרופיל" 
                                 className="profile-picture"
                                 onError={(e) => {
-                                    // אם יש שגיאה בטעינת התמונה, נציג תמונת ברירת מחדל
                                     (e.target as HTMLImageElement).src = '/default-avatar.png';
                                 }}
                             />
