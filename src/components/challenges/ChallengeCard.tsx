@@ -52,6 +52,12 @@ const ChallengeCard: React.FC<Props> = ({ challenge, isCreator = false }) => {
 
     const progressPercentage = ((challenge.currentProgress || 0) / challenge.goal) * 100;
 
+    // Check if the challenge is currently active based on dates
+    const currentDate = new Date();
+    const startDate = new Date(challenge.startDate);
+    const endDate = new Date(challenge.endDate);
+    const isActive = currentDate >= startDate && currentDate <= endDate;
+
     return (
         <div className="challenge-card">
             <div className="challenge-header">
@@ -110,7 +116,7 @@ const ChallengeCard: React.FC<Props> = ({ challenge, isCreator = false }) => {
                 </span>
             </div>
 
-            {challenge.isParticipating && challenge.status === ChallengeStatus.Active && (
+            {challenge.isParticipating && isActive && (
                 <div className="update-progress">
                     {isUpdatingProgress ? (
                         <div className="progress-update-form">
@@ -138,7 +144,7 @@ const ChallengeCard: React.FC<Props> = ({ challenge, isCreator = false }) => {
                 <button 
                     className={`participation-button ${challenge.isParticipating ? 'participating' : ''}`}
                     onClick={handleParticipation}
-                    disabled={challenge.status !== ChallengeStatus.Active}
+                    disabled={!isActive}
                 >
                     {challenge.isParticipating ? 'עזוב אתגר' : 'הצטרף לאתגר'}
                 </button>
