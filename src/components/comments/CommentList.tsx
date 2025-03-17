@@ -96,7 +96,8 @@ const CommentList: React.FC<Props> = ({ postId }) => {
             dispatch(editComment({ 
                 commentId, 
                 content: editContent.trim(),
-                formData 
+                formData,
+                postId 
             }));
             setEditingCommentId(null);
             setEditContent('');
