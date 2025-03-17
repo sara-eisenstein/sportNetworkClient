@@ -232,17 +232,6 @@ const ProfilePage: React.FC = () => {
                 // אם המשתמש בחר תמונה חדשה, נשתמש בה
                 updateData.profilePictureFile = profilePictureFile;
                 console.log('Using new profile picture file:', profilePictureFile.name);
-            } else if (currentUser && currentUser.profilePicture && !currentUser.profilePicture.includes('default-avatar')) {
-                // אם אין תמונה חדשה, ננסה לטעון את התמונה הקיימת כקובץ
-                console.log('Trying to fetch existing profile image as file...');
-                const existingImageFile = await fetchExistingProfileImage();
-                
-                if (existingImageFile) {
-                    updateData.profilePictureFile = existingImageFile;
-                    console.log('Using existing profile image as file:', existingImageFile.name);
-                } else {
-                    console.log('Could not fetch existing profile image, profile picture will not be updated');
-                }
             }
             
             console.log('Sending update data:', updateData);
