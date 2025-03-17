@@ -8,6 +8,36 @@ import PostCard from '../components/posts/PostCard';
 import { followUser, unfollowUser } from '../services/userService';
 import './UserProfile.css';
 
+// פונקציה עזר להמרת רמת כושר למחרוזת בעברית
+const getFitnessLevelText = (level: FitnessLevel | number): string => {
+    console.log('Raw fitness level:', level);
+    console.log('Fitness level type:', typeof level);
+    console.log('FitnessLevel enum:', FitnessLevel);
+    
+    // המרה למספר אם צריך
+    const levelNum = Number(level);
+    console.log('Converted to number:', levelNum);
+    
+    // בדיקה לפי ערך מספרי
+    if (levelNum === 0 || levelNum === FitnessLevel.Beginner) {
+        return 'מתחיל';
+    } else if (levelNum === 1 || levelNum === FitnessLevel.Intermediate) {
+        return 'בינוני';
+    } else if (levelNum === 2 || levelNum === FitnessLevel.Advanced) {
+        return 'מתקדם';
+    } else if (levelNum === 3 || levelNum === FitnessLevel.Professional) {
+        return 'מקצועי';
+    } else {
+        console.warn('Unknown fitness level value:', {
+            original: level,
+            type: typeof level,
+            converted: levelNum,
+            enumValue: FitnessLevel[levelNum]
+        });
+        return 'לא ידוע';
+    }
+};
+
 const UserProfile: React.FC = () => {
     const { userId } = useParams<{ userId: string }>();
     const [user, setUser] = useState<PublicUserDto | null>(null);
@@ -76,21 +106,6 @@ const UserProfile: React.FC = () => {
         return <div className="error">משתמש לא נמצא</div>;
     }
 
-    const getFitnessLevelText = (level: FitnessLevel): string => {
-        switch (level) {
-            case FitnessLevel.Beginner:
-                return 'מתחיל';
-            case FitnessLevel.Intermediate:
-                return 'בינוני';
-            case FitnessLevel.Advanced:
-                return 'מתקדם';
-            case FitnessLevel.Professional:
-                return 'מקצוען';
-            default:
-                return 'לא מוגדר';
-        }
-    };
-
     return (
         <div className="user-profile">
             <div className="profile-header">
@@ -107,7 +122,6 @@ const UserProfile: React.FC = () => {
                 />
                 <div className="profile-info">
                     <h1>{user.firstName} {user.lastName}</h1>
-                    <p className="level">רמת כושר: {getFitnessLevelText(user.level)}</p>
                     <p className="join-date">חבר מאז: {new Date(user.dateJoined).toLocaleDateString('he-IL')}</p>
                     <button 
                         className={`follow-button ${user.isFollowing ? 'following' : ''}`}

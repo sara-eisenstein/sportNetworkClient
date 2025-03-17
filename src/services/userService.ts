@@ -1,5 +1,6 @@
 import axios from "axios";
 import { UserDto, PublicUserDto } from "../models/user";
+import { store } from "../store/store";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -127,9 +128,26 @@ export const getPublicUserData = async (userId: number): Promise<PublicUserDto> 
 export const followUser = async (userId: number): Promise<void> => {
     try {
         console.log(`🔄 Following user ${userId}`);
-        await axios.post(`${API_URL}/api/User/${userId}/follow`, {}, {
+        
+        // Get current user from Redux store
+        const currentUser = store.getState().auth.currentUser;
+        if (!currentUser) {
+            throw new Error('User not logged in');
+        }
+
+        const formData = new FormData();
+        formData.append('FollowerUserId', userId.toString()); // The user being followed
+        formData.append('UserId', currentUser.userId.toString()); // The current user (follower)
+        
+        console.log('Sending follow request with data:', {
+            FollowerUserId: userId,
+            UserId: currentUser.userId
+        });
+
+        await axios.post(`${API_URL}/api/Follower`, formData, {
             headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
+                'Authorization': `Bearer ${localStorage.getItem("token")}`,
+                'Content-Type': 'multipart/form-data'
             },
         });
         console.log(`✅ Successfully followed user ${userId}`);
@@ -149,9 +167,9 @@ export const followUser = async (userId: number): Promise<void> => {
 export const unfollowUser = async (userId: number): Promise<void> => {
     try {
         console.log(`🔄 Unfollowing user ${userId}`);
-        await axios.post(`${API_URL}/api/User/${userId}/unfollow`, {}, {
+        await axios.delete(`${API_URL}/api/Follower/${userId}`, {
             headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
+                'Authorization': `Bearer ${localStorage.getItem("token")}`,
             },
         });
         console.log(`✅ Successfully unfollowed user ${userId}`);
