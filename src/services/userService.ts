@@ -195,17 +195,24 @@ export const followUser = async (userId: number): Promise<void> => {
 /**
  * מפסיק לעקוב אחרי משתמש
  */
-export const unfollowUser = async (userId: number): Promise<void> => {
+export const unfollowUser = async (unfollowUserId: number): Promise<void> => {
     try {
-        console.log(`🔄 Unfollowing user ${userId}`);
-        await axios.delete(`${API_URL}/api/Follower/${userId}`, {
+        console.log(`🔄 Unfollowing user ${unfollowUserId}`);
+        
+        // Get current user from Redux store
+        const currentUser = store.getState().auth.currentUser;
+        if (!currentUser) {
+            throw new Error('User not logged in');
+        }
+
+        await axios.delete(`${API_URL}/api/Follower/user/${currentUser.userId}/unfollow/${unfollowUserId}`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem("token")}`,
             },
         });
-        console.log(`✅ Successfully unfollowed user ${userId}`);
+        console.log(`✅ Successfully unfollowed user ${unfollowUserId}`);
     } catch (error: any) {
-        console.error(`❌ Failed to unfollow user ${userId}:`, {
+        console.error(`❌ Failed to unfollow user ${unfollowUserId}:`, {
             error: error.message,
             status: error.response?.status,
             data: error.response?.data
