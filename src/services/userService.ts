@@ -109,7 +109,38 @@ export const getUserImage = async (id: number): Promise<string> => {
 export const getPublicUserData = async (userId: number): Promise<PublicUserDto> => {
     try {
         console.log(`🔄 Fetching public data for user ${userId}`);
-        const response = await axios.get<PublicUserDto>(`${API_URL}/api/User/${userId}/public`);
+        const response = await axios.get<PublicUserDto>(`${API_URL}/api/User/${userId}/public`, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+        });
+        
+        // בדיקה האם המשתמש הנוכחי עוקב אחרי המשתמש הזה
+        const currentUser = store.getState().auth.currentUser;
+        if (currentUser) {
+            try {
+                // מביא את רשימת המשתמשים שהמשתמש הנוכחי עוקב אחריהם
+                const followingResponse = await axios.get(`${API_URL}/api/Follower/user/${currentUser.userId}/following`, {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                });
+                
+                console.log('Following response:', followingResponse.data);
+                
+                // בודק אם המשתמש הנוכחי נמצא ברשימת העוקבים
+                const isFollowing = followingResponse.data.some(
+                    (followingUser: any) => followingUser.userId === userId
+                );
+                
+                console.log('Is following:', isFollowing);
+                response.data.isFollowing = isFollowing;
+            } catch (error) {
+                console.error('שגיאה בבדיקת מצב העוקב:', error);
+                response.data.isFollowing = false;
+            }
+        }
+        
         console.log(`✅ Successfully fetched public data for user ${userId}:`, response.data);
         return response.data;
     } catch (error: any) {
