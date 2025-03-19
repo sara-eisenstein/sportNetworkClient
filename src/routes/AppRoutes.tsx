@@ -7,10 +7,10 @@ import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import ProfilePage from '../pages/ProfilePage';
 import UserProfile from '../pages/UserProfile';
+import ChallengesPage from '../pages/ChallengesPage';
 import PrivateRoute from '../components/auth/PrivateRoute';
 
 // Placeholder components - יש להחליף אותם בקומפוננטים האמיתיים
-const ChallengesPage = () => <div>Challenges Page</div>;
 const WorkoutsPage = () => <div>Workouts Page</div>;
 
 const AppRoutes: React.FC = () => {

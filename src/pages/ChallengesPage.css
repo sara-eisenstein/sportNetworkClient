@@ -1,0 +1,52 @@
+.challenges-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    direction: rtl;
+}
+
+.challenges-header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 30px 0;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.challenges-header h1 {
+    color: #0077b6;
+    margin-bottom: 20px;
+    font-size: 2.2rem;
+}
+
+.challenges-description {
+    font-size: 1.2rem;
+    color: #333;
+    max-width: 800px;
+    margin: 0 auto;
+    line-height: 1.5;
+}
+
+.challenges-main {
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .challenges-page {
+        padding: 10px;
+    }
+
+    .challenges-header h1 {
+        font-size: 1.8rem;
+    }
+
+    .challenges-description {
+        font-size: 1rem;
+        padding: 0 15px;
+    }
+} 

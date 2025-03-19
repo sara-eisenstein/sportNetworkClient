@@ -42,10 +42,25 @@ export const getChallengeById = async (challengeId: number): Promise<Challenge> 
 /**
  * יצירת אתגר חדש
  */
-export const createChallenge = async (challengeData: Omit<Challenge, "challengeId" | "status" | "participantsCount">): Promise<Challenge> => {
-    const response = await axios.post<Challenge>(`${API_URL}/api/Challenge`, challengeData, {
+export const createChallenge = async (challengeData: {
+    Title: string;
+    Description: string;
+    Level: number;
+    StartDate: string;
+    EndDate: string;
+}): Promise<Challenge> => {
+    const formData = new FormData();
+    formData.append('ChallengeId', '');
+    formData.append('Title', challengeData.Title);
+    formData.append('Description', challengeData.Description);
+    formData.append('Level', challengeData.Level.toString());
+    formData.append('StartDate', challengeData.StartDate);
+    formData.append('EndDate', challengeData.EndDate);
+
+    const response = await axios.post<Challenge>(`${API_URL}/api/Challenge`, formData, {
         headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            'Content-Type': 'multipart/form-data',
+            'Authorization': `Bearer ${localStorage.getItem("token")}`,
         },
     });
     return response.data;

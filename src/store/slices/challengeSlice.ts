@@ -51,7 +51,13 @@ export const fetchUserChallenges = createAsyncThunk(
 
 export const addChallenge = createAsyncThunk(
     "challenges/create",
-    async (challengeData: Omit<Challenge, "challengeId" | "status" | "participantsCount">, thunkAPI) => {
+    async (challengeData: {
+        Title: string;
+        Description: string;
+        Level: number;
+        StartDate: string;
+        EndDate: string;
+    }, thunkAPI) => {
         try {
             return await createChallenge(challengeData);
         } catch (error) {

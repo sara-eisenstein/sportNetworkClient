@@ -2,40 +2,38 @@ import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { AppDispatch } from '../../store/store';
 import { addChallenge } from '../../store/slices/challengeSlice';
-import { ChallengeType } from '../../models/challenge';
 import './CreateChallenge.css';
 
 const CreateChallenge: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [type, setType] = useState<ChallengeType>(ChallengeType.Running);
-    const [goal, setGoal] = useState('');
-    const [unit, setUnit] = useState('');
+    const [level, setLevel] = useState(1);
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         
-        if (title && description && goal && unit && startDate && endDate) {
+        if (title && description && startDate && endDate) {
+            // המרת התאריך לפורמט הנכון (dd/MM/yyyy)
+            const formatDate = (date: string) => {
+                const d = new Date(date);
+                return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
+            };
+
             dispatch(addChallenge({
-                title,
-                description,
-                type,
-                goal: Number(goal),
-                unit,
-                startDate: new Date(startDate),
-                endDate: new Date(endDate),
-                creatorId: 0 // יש להחליף עם המזהה של המשתמש המחובר
+                Title: title,
+                Description: description,
+                Level: level,
+                StartDate: formatDate(startDate),
+                EndDate: formatDate(endDate)
             }));
 
             // איפוס הטופס
             setTitle('');
             setDescription('');
-            setType(ChallengeType.Running);
-            setGoal('');
-            setUnit('');
+            setLevel(1);
             setStartDate('');
             setEndDate('');
         }
@@ -70,42 +68,17 @@ const CreateChallenge: React.FC = () => {
                 </div>
 
                 <div className="form-group">
-                    <label htmlFor="type">סוג האתגר</label>
+                    <label htmlFor="level">רמת קושי</label>
                     <select
-                        id="type"
-                        value={type}
-                        onChange={(e) => setType(e.target.value as ChallengeType)}
+                        id="level"
+                        value={level}
+                        onChange={(e) => setLevel(Number(e.target.value))}
                         required
                     >
-                        {Object.values(ChallengeType).map(type => (
-                            <option key={type} value={type}>{type}</option>
-                        ))}
+                        <option value={1}>קל</option>
+                        <option value={2}>בינוני</option>
+                        <option value={3}>קשה</option>
                     </select>
-                </div>
-
-                <div className="form-group">
-                    <label htmlFor="goal">יעד</label>
-                    <input
-                        type="number"
-                        id="goal"
-                        value={goal}
-                        onChange={(e) => setGoal(e.target.value)}
-                        placeholder="הכנס את היעד המספרי"
-                        min="0"
-                        required
-                    />
-                </div>
-
-                <div className="form-group">
-                    <label htmlFor="unit">יחידת מדידה</label>
-                    <input
-                        type="text"
-                        id="unit"
-                        value={unit}
-                        onChange={(e) => setUnit(e.target.value)}
-                        placeholder="למשל: ק״מ, דקות, חזרות"
-                        required
-                    />
                 </div>
 
                 <div className="form-row">
@@ -116,7 +89,6 @@ const CreateChallenge: React.FC = () => {
                             id="startDate"
                             value={startDate}
                             onChange={(e) => setStartDate(e.target.value)}
-                            min={new Date().toISOString().split('T')[0]}
                             required
                         />
                     </div>
@@ -128,15 +100,12 @@ const CreateChallenge: React.FC = () => {
                             id="endDate"
                             value={endDate}
                             onChange={(e) => setEndDate(e.target.value)}
-                            min={startDate || new Date().toISOString().split('T')[0]}
                             required
                         />
                     </div>
                 </div>
 
-                <button type="submit" disabled={!title || !description || !goal || !unit || !startDate || !endDate}>
-                    צור אתגר
-                </button>
+                <button type="submit">צור אתגר</button>
             </form>
         </div>
     );
