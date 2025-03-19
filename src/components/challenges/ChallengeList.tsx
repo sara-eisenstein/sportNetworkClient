@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../store/store';
 import { fetchAllChallenges, fetchUserChallenges } from '../../store/slices/challengeSlice';
@@ -16,6 +16,7 @@ const ChallengeList: React.FC<Props> = ({ userId, showCreateChallenge = false })
     const { challenges, userChallenges, loading, error } = useSelector((state: RootState) => state.challenges);
     const { currentUser } = useSelector((state: RootState) => state.auth);
     const [activeFilter, setActiveFilter] = useState<'all' | 'my'>('all');
+    const [showOnlyActive, setShowOnlyActive] = useState(true);
     const [userChallengesError, setUserChallengesError] = useState<boolean>(false);
 
     useEffect(() => {
@@ -36,6 +37,21 @@ const ChallengeList: React.FC<Props> = ({ userId, showCreateChallenge = false })
         fetchChallenges();
     }, [dispatch, activeFilter, currentUser]);
 
+    const filteredChallenges = useMemo(() => {
+        const baseChallenges = activeFilter === 'my' ? userChallenges : challenges;
+        
+        if (!showOnlyActive) {
+            return baseChallenges;
+        }
+
+        const now = new Date();
+        return baseChallenges.filter(challenge => {
+            const startDate = new Date(challenge.startDate);
+            const endDate = new Date(challenge.endDate);
+            return startDate <= now && endDate >= now;
+        });
+    }, [challenges, userChallenges, activeFilter, showOnlyActive]);
+
     if (loading) {
         return <div className="challenges-loading">טוען אתגרים...</div>;
     }
@@ -44,38 +60,38 @@ const ChallengeList: React.FC<Props> = ({ userId, showCreateChallenge = false })
         return <div className="challenges-error">שגיאה בטעינת האתגרים: {error}</div>;
     }
 
-    const displayedChallenges = activeFilter === 'my' ? userChallenges : challenges;
-
     return (
         <div className="challenges-container">
             {showCreateChallenge && <CreateChallenge />}
 
             <div className="challenges-toggle">
                 <button 
-                    onClick={() => setActiveFilter('all')}
-                    className={`toggle-button ${activeFilter === 'all' ? 'active' : ''}`}
+                    onClick={() => setShowOnlyActive(!showOnlyActive)}
+                    className={`toggle-button ${showOnlyActive ? 'active' : ''}`}
                 >
-                    כל האתגרים
+                    {showOnlyActive ? 'הצג את כל האתגרים' : 'הצג רק אתגרים פעילים'}
                 </button>
                 {currentUser && (
                     <button 
-                        onClick={() => setActiveFilter('my')}
+                        onClick={() => setActiveFilter(activeFilter === 'all' ? 'my' : 'all')}
                         className={`toggle-button ${activeFilter === 'my' ? 'active' : ''}`}
                     >
-                        האתגרים שלי
+                        {activeFilter === 'my' ? 'הצג את כל האתגרים' : 'הצג את האתגרים שלי'}
                     </button>
                 )}
             </div>
 
-            {(displayedChallenges.length === 0 || (activeFilter === 'my' && userChallengesError)) ? (
+            {(filteredChallenges.length === 0 || (activeFilter === 'my' && userChallengesError)) ? (
                 <div className="no-challenges">
                     {activeFilter === 'my'
                         ? 'אין לך אתגרים פעילים כרגע'
-                        : 'אין אתגרים פעילים כרגע'}
+                        : showOnlyActive 
+                            ? 'אין אתגרים פעילים כרגע'
+                            : 'אין אתגרים כרגע'}
                 </div>
             ) : (
                 <div className="challenges-list">
-                    {displayedChallenges.map(challenge => (
+                    {filteredChallenges.map(challenge => (
                         <ChallengeCard
                             key={challenge.challengeId}
                             challenge={challenge}
