@@ -13,40 +13,69 @@ interface Props {
 
 const ChallengeList: React.FC<Props> = ({ userId, showCreateChallenge = false }) => {
     const dispatch = useDispatch<AppDispatch>();
-    const { challenges, loading, error } = useSelector((state: RootState) => state.challenges);
+    const { challenges, userChallenges, loading, error } = useSelector((state: RootState) => state.challenges);
     const { currentUser } = useSelector((state: RootState) => state.auth);
-    const [showMyChallenges, setShowMyChallenges] = useState(false);
-    const [showAllChallenges, setShowAllChallenges] = useState(true);
+    const [activeFilter, setActiveFilter] = useState<'all' | 'my'>('all');
+    const [userChallengesError, setUserChallengesError] = useState<boolean>(false);
 
     useEffect(() => {
-        if (showMyChallenges && currentUser) {
-            dispatch(fetchUserChallenges(currentUser.userId));
-        } else {
-            dispatch(fetchAllChallenges());
-        }
-    }, [dispatch, showMyChallenges, currentUser]);
+        const fetchChallenges = async () => {
+            if (activeFilter === 'my' && currentUser) {
+                const result = await dispatch(fetchUserChallenges(currentUser.userId));
+                if (result.type === fetchUserChallenges.rejected.type) {
+                    setUserChallengesError(true);
+                } else {
+                    setUserChallengesError(false);
+                }
+            } else {
+                dispatch(fetchAllChallenges());
+                setUserChallengesError(false);
+            }
+        };
+        
+        fetchChallenges();
+    }, [dispatch, activeFilter, currentUser]);
 
     if (loading) {
         return <div className="challenges-loading">טוען אתגרים...</div>;
     }
 
-    if (error) {
+    if (error && !userChallengesError) {
         return <div className="challenges-error">שגיאה בטעינת האתגרים: {error}</div>;
     }
+
+    const displayedChallenges = activeFilter === 'my' ? userChallenges : challenges;
 
     return (
         <div className="challenges-container">
             {showCreateChallenge && <CreateChallenge />}
 
-            {challenges.length === 0 ? (
+            <div className="challenges-toggle">
+                <button 
+                    onClick={() => setActiveFilter('all')}
+                    className={`toggle-button ${activeFilter === 'all' ? 'active' : ''}`}
+                >
+                    כל האתגרים
+                </button>
+                {currentUser && (
+                    <button 
+                        onClick={() => setActiveFilter('my')}
+                        className={`toggle-button ${activeFilter === 'my' ? 'active' : ''}`}
+                    >
+                        האתגרים שלי
+                    </button>
+                )}
+            </div>
+
+            {(displayedChallenges.length === 0 || (activeFilter === 'my' && userChallengesError)) ? (
                 <div className="no-challenges">
-                    {showMyChallenges 
+                    {activeFilter === 'my'
                         ? 'אין לך אתגרים פעילים כרגע'
                         : 'אין אתגרים פעילים כרגע'}
                 </div>
             ) : (
                 <div className="challenges-list">
-                    {challenges.map(challenge => (
+                    {displayedChallenges.map(challenge => (
                         <ChallengeCard
                             key={challenge.challengeId}
                             challenge={challenge}
@@ -55,29 +84,6 @@ const ChallengeList: React.FC<Props> = ({ userId, showCreateChallenge = false })
                     ))}
                 </div>
             )}
-
-            <div className="challenges-toggle">
-                <button 
-                    onClick={() => {
-                        setShowMyChallenges(false);
-                        setShowAllChallenges(!showAllChallenges);
-                    }}
-                    className={`toggle-button ${showAllChallenges ? 'active' : ''}`}
-                >
-                    {showAllChallenges ? 'הצג רק אתגרים פעילים' : 'הצג את כל האתגרים'}
-                </button>
-                {currentUser && (
-                    <button 
-                        onClick={() => {
-                            setShowAllChallenges(false);
-                            setShowMyChallenges(!showMyChallenges);
-                        }}
-                        className={`toggle-button ${showMyChallenges ? 'active' : ''}`}
-                    >
-                        {showMyChallenges ? 'הצג את כל האתגרים' : 'הצג את האתגרים שלי'}
-                    </button>
-                )}
-            </div>
         </div>
     );
 };
