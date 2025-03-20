@@ -1,10 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { UserDto } from '../models/user';
 import { getUsers, getUserImage } from '../services/userService';
 import '../styles/UsersGrid.css';
 
-const UsersGrid: React.FC = () => {
+interface UsersGridProps {
+    searchTerm: string;
+}
+
+const UsersGrid: React.FC<UsersGridProps> = ({ searchTerm }) => {
     const [users, setUsers] = useState<UserDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -39,6 +43,15 @@ const UsersGrid: React.FC = () => {
         fetchUsers();
     }, []);
 
+    const filteredUsers = useMemo(() => {
+        if (!searchTerm) return users;
+        
+        const searchTermLower = searchTerm.toLowerCase();
+        return users.filter(user => 
+            `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchTermLower)
+        );
+    }, [users, searchTerm]);
+
     if (loading) {
         return <div className="users-grid-loading">טוען משתמשים...</div>;
     }
@@ -50,26 +63,30 @@ const UsersGrid: React.FC = () => {
     return (
         <div className="users-grid-container">
             <h1 className="users-grid-title">משתמשים</h1>
-            <div className="users-grid">
-                {users.map((user) => (
-                    <Link 
-                        to={`/user/${user.userId}`} 
-                        key={user.userId} 
-                        className="user-card"
-                    >
-                        <div className="user-image-container">
-                            <img 
-                                src={user.profilePicture || '/default-avatar.png'} 
-                                alt={`${user.firstName} ${user.lastName}`} 
-                                className="user-image"
-                            />
-                        </div>
-                        <div className="user-name">
-                            {user.firstName} {user.lastName}
-                        </div>
-                    </Link>
-                ))}
-            </div>
+            {filteredUsers.length === 0 ? (
+                <div className="no-results">לא נמצאו משתמשים התואמים את החיפוש</div>
+            ) : (
+                <div className="users-grid">
+                    {filteredUsers.map((user) => (
+                        <Link 
+                            to={`/user/${user.userId}`} 
+                            key={user.userId} 
+                            className="user-card"
+                        >
+                            <div className="user-image-container">
+                                <img 
+                                    src={user.profilePicture || '/default-avatar.png'} 
+                                    alt={`${user.firstName} ${user.lastName}`} 
+                                    className="user-image"
+                                />
+                            </div>
+                            <div className="user-name">
+                                {user.firstName} {user.lastName}
+                            </div>
+                        </Link>
+                    ))}
+                </div>
+            )}
         </div>
     );
 };
