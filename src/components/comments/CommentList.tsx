@@ -37,7 +37,7 @@ const CommentList: React.FC<Props> = ({ postId }) => {
                         console.error(`Failed to load profile image for user ${comment.userId}:`, error);
                         setProfileImages(prev => ({
                             ...prev,
-                            [comment.userId]: '/default-avatar.png'
+                            [comment.userId]: '/default-avatar.webp'
                         }));
                     }
                 }
@@ -141,11 +141,11 @@ const CommentList: React.FC<Props> = ({ postId }) => {
                         <div key={comment.commentId} className="comment">
                             <div className="comment-header">
                                 <img 
-                                    src={profileImages[comment.userId] || '/default-avatar.png'}
+                                    src={profileImages[comment.userId] || '/default-avatar.webp'}
                                     alt={comment.userName} 
                                     className="user-avatar"
                                     onError={(e) => {
-                                        (e.target as HTMLImageElement).src = '/default-avatar.png';
+                                        (e.target as HTMLImageElement).src = '/default-avatar.webp';
                                     }}
                                 />
                                 <span className="user-name">{comment.userName}</span>

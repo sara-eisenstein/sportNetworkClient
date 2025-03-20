@@ -62,7 +62,7 @@ const ChallengeCard: React.FC<Props> = ({ challenge, isCreator = false }) => {
         <div className="challenge-card">
             <div className="challenge-header">
                 <img 
-                    src={challenge.creatorProfilePicture || '/default-avatar.png'} 
+                    src={challenge.creatorProfilePicture || '/default-avatar.webp'} 
                     alt={challenge.creatorName} 
                     className="creator-avatar"
                 />

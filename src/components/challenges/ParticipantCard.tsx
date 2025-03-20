@@ -27,7 +27,7 @@ const ParticipantCard: React.FC<Props> = ({ participant, goal, unit }) => {
         <div className="participant-card">
             <div className="participant-header">
                 <img 
-                    src={participant.userProfilePicture || '/default-avatar.png'} 
+                    src={participant.userProfilePicture || '/default-avatar.webp'} 
                     alt={participant.userName} 
                     className="participant-avatar"
                 />

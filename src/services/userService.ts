@@ -77,14 +77,14 @@ export const getUserImage = async (id: number): Promise<string> => {
 
         if (!response.data || response.data.size === 0) {
             console.warn(`Empty image data received for user ${id}`);
-            return '/default-avatar.png';
+            return '/default-avatar.webp';
         }
 
         // בדיקה שהתגובה היא אכן תמונה
         const contentType = response.headers['content-type'];
         if (!contentType || !contentType.startsWith('image/')) {
             console.warn(`Invalid content type for user ${id}: ${contentType}`);
-            return '/default-avatar.png';
+            return '/default-avatar.webp';
         }
 
         // יצירת URL מקומי לתמונה
@@ -99,7 +99,7 @@ export const getUserImage = async (id: number): Promise<string> => {
             contentType: error.response?.headers?.['content-type'],
             url: error.config?.url
         });
-        return '/default-avatar.png';
+        return '/default-avatar.webp';
     }
 };
 

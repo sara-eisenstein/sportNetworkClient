@@ -30,7 +30,7 @@ const UserProfile: React.FC = () => {
     const [posts, setPosts] = useState<Post[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [profileImageUrl, setProfileImageUrl] = useState<string>('/default-avatar.png');
+    const [profileImageUrl, setProfileImageUrl] = useState<string>('/default-avatar.webp');
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -49,7 +49,7 @@ const UserProfile: React.FC = () => {
                     setProfileImageUrl(imageUrl);
                 } catch (imageError) {
                     console.error('שגיאה בטעינת תמונת פרופיל:', imageError);
-                    setProfileImageUrl('/default-avatar.png');
+                    setProfileImageUrl('/default-avatar.webp');
                 }
 
                 const userPosts = await getUserPosts(parseInt(userId));
@@ -101,8 +101,8 @@ const UserProfile: React.FC = () => {
                     className="profile-picture"
                     onError={(e) => {
                         const target = e.target as HTMLImageElement;
-                        if (target.src !== '/default-avatar.png') {
-                            target.src = '/default-avatar.png';
+                        if (target.src !== '/default-avatar.webp') {
+                            target.src = '/default-avatar.webp';
                         }
                     }}
                 />

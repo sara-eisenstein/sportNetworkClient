@@ -76,7 +76,7 @@ const PostCard: React.FC<Props> = ({ post, isOwnPost = false }) => {
                         userId: post.userId,
                         error: error.message
                     });
-                    setUserProfileImageUrl('/default-avatar.png');
+                    setUserProfileImageUrl('/default-avatar.webp');
                 });
 
             // טעינת מידע על המשתמש
@@ -227,17 +227,17 @@ const PostCard: React.FC<Props> = ({ post, isOwnPost = false }) => {
         <div className="post-card">
             <div className="post-header">
                 <img 
-                    src={userProfileImageUrl || '/default-avatar.png'} 
+                    src={userProfileImageUrl || '/default-avatar.webp'} 
                     alt={author ? `${author.firstName} ${author.lastName}` : "Unknown User"} 
                     className="user-avatar"
                     onError={(e) => {
                         const target = e.target as HTMLImageElement;
-                        if (target.src !== `${window.location.origin}/default-avatar.png`) {
+                        if (target.src !== `${window.location.origin}/default-avatar.webp`) {
                             console.error('Failed to load profile image:', {
                                 userId: post.userId,
                                 url: target.src
                             });
-                            target.src = '/default-avatar.png';
+                            target.src = '/default-avatar.webp';
                         }
                     }}
                 />

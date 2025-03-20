@@ -27,7 +27,7 @@ const UsersGrid: React.FC<UsersGridProps> = ({ searchTerm }) => {
                             return { ...user, profilePicture: imageUrl };
                         } catch (error) {
                             console.error(`Error fetching image for user ${user.userId}:`, error);
-                            return { ...user, profilePicture: '/default-avatar.png' };
+                            return { ...user, profilePicture: '/default-avatar.webp' };
                         }
                     })
                 );
@@ -75,7 +75,7 @@ const UsersGrid: React.FC<UsersGridProps> = ({ searchTerm }) => {
                         >
                             <div className="user-image-container">
                                 <img 
-                                    src={user.profilePicture || '/default-avatar.png'} 
+                                    src={user.profilePicture || '/default-avatar.webp'} 
                                     alt={`${user.firstName} ${user.lastName}`} 
                                     className="user-image"
                                 />

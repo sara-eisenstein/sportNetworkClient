@@ -25,7 +25,7 @@ export const getAllPosts = async (): Promise<Post[]> => {
         ...post,
         // אין צורך להמיר את התאריך ל-Date, משאירים אותו כמחרוזת
         userName: post.userName || "משתמש לא ידוע",
-        userProfilePicture: post.userProfilePicture || '/default-avatar.png'
+        userProfilePicture: post.userProfilePicture || '/default-avatar.webp'
     }));
 };
 
@@ -40,7 +40,7 @@ export const getPostsByUserId = async (userId: number): Promise<Post[]> => {
         ...post,
         // אין צורך להמיר את התאריך ל-Date, משאירים אותו כמחרוזת
         userName: post.userName || "משתמש לא ידוע",
-        userProfilePicture: post.userProfilePicture || '/default-avatar.png'
+        userProfilePicture: post.userProfilePicture || '/default-avatar.webp'
     }));
 };
 

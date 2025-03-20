@@ -315,7 +315,7 @@ const ProfilePage: React.FC = () => {
                                     className="profile-picture"
                                     onError={(e) => {
                                         // אם יש שגיאה בטעינת התמונה, נציג תמונת ברירת מחדל
-                                        (e.target as HTMLImageElement).src = '/default-avatar.png';
+                                        (e.target as HTMLImageElement).src = '/default-avatar.webp';
                                     }}
                                     onLoad={(e) => {
                                         // רק אם התמונה היא מה-API ולא מה-preview
@@ -477,7 +477,7 @@ const ProfilePage: React.FC = () => {
                                 alt="תמונת פרופיל" 
                                 className="profile-picture"
                                 onError={(e) => {
-                                    (e.target as HTMLImageElement).src = '/default-avatar.png';
+                                    (e.target as HTMLImageElement).src = '/default-avatar.webp';
                                 }}
                                 onLoad={(e) => {
                                     // רק אם התמונה היא מה-API
