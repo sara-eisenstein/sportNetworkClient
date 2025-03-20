@@ -250,6 +250,18 @@ const ProfilePage: React.FC = () => {
             setProfilePictureFile(null);
             setPreviewUrl('');
             setShowPassword(false);
+
+            // המתנה קצרה לפני רענון התמונה
+            if (currentUser?.userId) {
+                setTimeout(() => {
+                    const images = document.querySelectorAll('.profile-picture') as NodeListOf<HTMLImageElement>;
+                    images.forEach(img => {
+                        if (!img.src.includes('default-avatar')) {
+                            img.src = getProfileImageUrl(currentUser.userId);
+                        }
+                    });
+                }, 500);
+            }
         } catch (error) {
             console.error('Error updating profile:', error);
             setUpdateError('אירעה שגיאה בעדכון הפרופיל');
@@ -304,6 +316,18 @@ const ProfilePage: React.FC = () => {
                                     onError={(e) => {
                                         // אם יש שגיאה בטעינת התמונה, נציג תמונת ברירת מחדל
                                         (e.target as HTMLImageElement).src = '/default-avatar.png';
+                                    }}
+                                    onLoad={(e) => {
+                                        // רק אם התמונה היא מה-API ולא מה-preview
+                                        const img = e.target as HTMLImageElement;
+                                        if (!previewUrl && !img.src.includes('default-avatar') && img.src.includes('/getUserImage/')) {
+                                            const baseUrl = img.src.split('?')[0];
+                                            const newUrl = `${baseUrl}?timestamp=${new Date().getTime()}`;
+                                            // רק אם ה-URL השתנה
+                                            if (newUrl !== img.src) {
+                                                img.src = newUrl;
+                                            }
+                                        }
                                     }}
                                 />
                                 <label htmlFor="profile-picture-upload" className="upload-button">
@@ -454,6 +478,18 @@ const ProfilePage: React.FC = () => {
                                 className="profile-picture"
                                 onError={(e) => {
                                     (e.target as HTMLImageElement).src = '/default-avatar.png';
+                                }}
+                                onLoad={(e) => {
+                                    // רק אם התמונה היא מה-API
+                                    const img = e.target as HTMLImageElement;
+                                    if (!img.src.includes('default-avatar') && img.src.includes('/getUserImage/')) {
+                                        const baseUrl = img.src.split('?')[0];
+                                        const newUrl = `${baseUrl}?timestamp=${new Date().getTime()}`;
+                                        // רק אם ה-URL השתנה
+                                        if (newUrl !== img.src) {
+                                            img.src = newUrl;
+                                        }
+                                    }
                                 }}
                             />
                         </div>
