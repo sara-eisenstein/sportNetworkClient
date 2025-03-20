@@ -1,30 +1,34 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import HomePage from "./pages/HomePage";
-import LoginPage from "./pages/LoginPage";
-import Navbar from "./components/Navbar";
-import { Provider } from "react-redux";
+import React, { useEffect } from "react";
+import { BrowserRouter as Router } from "react-router-dom";
+import { Provider, useDispatch } from "react-redux";
 import { store } from "./store/store";
+import { restoreSession } from "./store/slices/authSlice";
+import { AppDispatch } from "./store/store";
+import Navbar from "./components/layout/Navbar";
+import AppRoutes from "./routes/AppRoutes";
 import "./App.css";
 import ChatPage from "./pages/ChatPage";
 import ChatBox from "./components/chat/ChatBox";
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+
+  useEffect(() => {
+    // בדיקה אם יש טוקן בלוקל סטורג' בטעינה הראשונית
+    const token = localStorage.getItem("token");
+    if (token) {
+      dispatch(restoreSession(token));
+    }
+  }, [dispatch]);
+
   return (
-    <Provider store={store}>
-      <Router>
-        <div className="app">
-          <Navbar />
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/chat" element={<ChatBox userName="sara" />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </div>
-      </Router>
-    </Provider>
+    <Router>
+      <div className="app">
+        <Navbar />
+        <AppRoutes />
+      </div>
+    </Router>
   );
 };
 
-export default App;
+

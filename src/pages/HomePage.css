@@ -1,153 +1,133 @@
 .home-page {
-    min-height: 100vh;
-    background-color: #f0f2f5;
+    max-width: 1200px;
+    margin: 0 auto;
     padding: 20px;
+    direction: rtl;
 }
 
 .home-header {
-    max-width: 1200px;
-    margin: 0 auto 32px;
     text-align: center;
-    padding: 20px;
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 40px;
+    padding: 30px 0;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
 .home-header h1 {
-    color: #1a237e;
-    margin-bottom: 16px;
-    font-size: 2em;
+    color: #0077b6;
+    margin-bottom: 20px;
+    font-size: 2.2rem;
 }
 
 .welcome-message {
-    color: #666;
-    font-size: 1.2em;
+    font-size: 1.2rem;
+    color: #333;
 }
 
 .guest-message {
-    color: #666;
-    font-size: 1.2em;
-    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.guest-message p {
+    font-size: 1.2rem;
+    color: #333;
+    margin-bottom: 10px;
 }
 
 .login-link {
     display: inline-block;
-    margin-top: 10px;
-    padding: 8px 16px;
-    background-color: #1a237e;
+    background-color: #0077b6;
     color: white;
-    border-radius: 4px;
+    padding: 10px 20px;
+    border-radius: 5px;
     text-decoration: none;
-    transition: background-color 0.2s;
+    font-weight: bold;
+    transition: background-color 0.3s;
 }
 
 .login-link:hover {
-    background-color: #151b4f;
+    background-color: #005b8c;
 }
 
 .home-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 1fr 350px;
-    gap: 24px;
+    display: flex;
+    gap: 30px;
 }
 
 .main-content {
-    background-color: transparent;
+    flex: 2;
 }
 
 .side-content {
-    background-color: transparent;
+    flex: 1;
+}
+
+.posts-section, 
+.challenges-section,
+.login-prompt {
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .posts-section h2,
 .challenges-section h2,
 .login-prompt h2 {
-    color: #1a237e;
-    margin-bottom: 16px;
-    font-size: 1.5em;
-    padding: 0 20px;
-}
-
-.login-prompt {
-    background-color: white;
-    padding: 24px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.login-prompt p {
-    color: #666;
+    color: #0077b6;
     margin-bottom: 20px;
-    padding: 0 20px;
+    font-size: 1.5rem;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 10px;
 }
 
 .features-list {
-    list-style: none;
-    padding: 0 20px;
-    margin-bottom: 24px;
+    margin: 20px 0;
+    padding-right: 20px;
 }
 
 .features-list li {
-    color: #444;
-    margin-bottom: 12px;
-    padding-right: 24px;
+    margin-bottom: 10px;
     position: relative;
 }
 
-.features-list li:before {
+.features-list li::before {
     content: "✓";
+    color: #0077b6;
     position: absolute;
-    right: 0;
-    color: #4caf50;
+    right: -20px;
 }
 
 .login-button {
     display: block;
-    width: calc(100% - 40px);
-    margin: 0 20px;
-    padding: 12px;
-    background-color: #1a237e;
+    width: 100%;
+    background-color: #0077b6;
     color: white;
     text-align: center;
-    border-radius: 4px;
+    padding: 12px;
+    border-radius: 5px;
     text-decoration: none;
-    transition: background-color 0.2s;
+    font-weight: bold;
+    margin-top: 20px;
+    transition: background-color 0.3s;
 }
 
 .login-button:hover {
-    background-color: #151b4f;
+    background-color: #005b8c;
 }
 
-/* רספונסיביות */
-@media (max-width: 1024px) {
-    .home-content {
-        grid-template-columns: 1fr;
-    }
-
-    .side-content {
-        order: -1;
-    }
-}
-
+/* Responsive styles */
 @media (max-width: 768px) {
-    .home-page {
-        padding: 10px;
+    .home-content {
+        flex-direction: column;
     }
-
-    .home-header {
-        padding: 16px;
-        margin-bottom: 20px;
-    }
-
+    
     .home-header h1 {
-        font-size: 1.5em;
-    }
-
-    .welcome-message,
-    .guest-message {
-        font-size: 1em;
+        font-size: 1.8rem;
     }
 } 

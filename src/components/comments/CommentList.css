@@ -49,32 +49,40 @@
     display: flex;
     align-items: center;
     margin-bottom: 12px;
+    gap: 8px;
 }
 
 .user-avatar {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    margin-left: 12px;
+    object-fit: cover;
+    border: 2px solid #e0e0e0;
 }
 
 .user-name {
-    font-weight: bold;
-    margin-left: 8px;
+    font-weight: 600;
+    color: #333;
+    font-size: 1.1em;
 }
 
 .comment-date {
     color: #666;
     font-size: 0.9em;
+    margin-right: auto;
 }
 
 .comment-content {
     margin-top: 8px;
+    padding: 8px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
 }
 
 .comment-content p {
     margin: 0;
     line-height: 1.5;
+    color: #333;
 }
 
 .comment-actions, .edit-actions {
@@ -115,4 +123,14 @@
     background-color: #dc3545;
     color: white;
     border: none;
+}
+
+.no-comments {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+    font-style: italic;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin: 10px 0;
 } 

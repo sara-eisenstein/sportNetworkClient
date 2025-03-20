@@ -1,0 +1,161 @@
+.register-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f0f2f5;
+    padding: 20px;
+}
+
+.register-container {
+    background-color: white;
+    padding: 32px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 500px;
+}
+
+.register-container h2 {
+    text-align: center;
+    color: #1a237e;
+    margin-bottom: 24px;
+}
+
+.error-message {
+    background-color: #ffebee;
+    color: #c62828;
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #666;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #1a237e;
+    box-shadow: 0 0 0 2px rgba(26,35,126,0.2);
+}
+
+.profile-picture-upload {
+    margin-top: 8px;
+}
+
+.profile-picture-upload input[type="file"] {
+    display: none;
+}
+
+.profile-picture-upload label {
+    display: inline-block;
+    padding: 8px 16px;
+    background-color: #f0f2f5;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.profile-picture-upload label:hover {
+    background-color: #e4e6e9;
+}
+
+.profile-picture-preview {
+    margin-top: 12px;
+    position: relative;
+}
+
+.profile-picture-preview img {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid #1a237e;
+}
+
+.profile-picture-preview button {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.register-container button {
+    width: 100%;
+    padding: 12px;
+    background-color: #1a237e;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.register-container button:hover {
+    background-color: #151b4f;
+}
+
+.register-container button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.login-section {
+    margin-top: 20px;
+    text-align: center;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.login-section p {
+    margin-bottom: 10px;
+    color: #666;
+}
+
+.login-link {
+    color: #1a237e;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.login-link:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+} 

@@ -70,9 +70,9 @@ export const follow = createAsyncThunk(
 // מסיר עוקב
 export const unfollow = createAsyncThunk(
   "follower/unfollow",
-  async (followedUserId: number, thunkAPI) => {
+  async (unfollowUserId: number, thunkAPI) => {
     try {
-      return await unfollowUser(followedUserId);
+      return await unfollowUser(unfollowUserId);
     } catch (error) {
       return thunkAPI.rejectWithValue("Failed to unfollow user");
     }

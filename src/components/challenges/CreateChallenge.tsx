@@ -83,30 +83,29 @@ const CreateChallenge: React.FC = () => {
                     </select>
                 </div>
 
-                <div className="form-row">
-                    <div className="form-group">
-                        <label htmlFor="goal">יעד</label>
-                        <input
-                            type="number"
-                            id="goal"
-                            value={goal}
-                            onChange={(e) => setGoal(e.target.value)}
-                            min="1"
-                            required
-                        />
-                    </div>
+                <div className="form-group">
+                    <label htmlFor="goal">יעד</label>
+                    <input
+                        type="number"
+                        id="goal"
+                        value={goal}
+                        onChange={(e) => setGoal(e.target.value)}
+                        placeholder="הכנס את היעד המספרי"
+                        min="0"
+                        required
+                    />
+                </div>
 
-                    <div className="form-group">
-                        <label htmlFor="unit">יחידת מדידה</label>
-                        <input
-                            type="text"
-                            id="unit"
-                            value={unit}
-                            onChange={(e) => setUnit(e.target.value)}
-                            placeholder="ק״מ, דקות, חזרות..."
-                            required
-                        />
-                    </div>
+                <div className="form-group">
+                    <label htmlFor="unit">יחידת מדידה</label>
+                    <input
+                        type="text"
+                        id="unit"
+                        value={unit}
+                        onChange={(e) => setUnit(e.target.value)}
+                        placeholder="למשל: ק״מ, דקות, חזרות"
+                        required
+                    />
                 </div>
 
                 <div className="form-row">

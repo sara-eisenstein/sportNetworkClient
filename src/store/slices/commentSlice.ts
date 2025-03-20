@@ -38,9 +38,10 @@ export const createComment = createAsyncThunk(
 
 export const editComment = createAsyncThunk(
     "comments/edit",
-    async ({ commentId, content }: { commentId: number; content: string }, thunkAPI) => {
+    async ({ commentId, content, formData, postId }: { commentId: number; content: string; formData: FormData; postId: number }, thunkAPI) => {
         try {
-            return await updateComment(commentId, content);
+            await updateComment(commentId, formData);
+            return await getCommentsByPostId(postId);
         } catch (error) {
             return thunkAPI.rejectWithValue("Failed to update comment");
         }
@@ -87,11 +88,8 @@ const commentSlice = createSlice({
                 state.error = action.payload as string;
             })
             // Edit Comment
-            .addCase(editComment.fulfilled, (state, action: PayloadAction<Comment>) => {
-                const index = state.comments.findIndex(comment => comment.commentId === action.payload.commentId);
-                if (index !== -1) {
-                    state.comments[index] = action.payload;
-                }
+            .addCase(editComment.fulfilled, (state, action: PayloadAction<Comment[]>) => {
+                state.comments = action.payload;
                 state.error = null;
             })
             .addCase(editComment.rejected, (state, action) => {
