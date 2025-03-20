@@ -23,6 +23,7 @@ const initialState: AuthState = {
     error: null
 };
 
+// פונקציה לפענוח הטוקן
 function parseJwt(token: string) {
     try {
         const base64Url = token.split('.')[1];
@@ -38,6 +39,7 @@ function parseJwt(token: string) {
     }
 }
 
+// פעולה להתחברות
 export const login = createAsyncThunk(
     'auth/login',
     async (credentials: LoginDto, { rejectWithValue }) => {
@@ -85,6 +87,7 @@ export const login = createAsyncThunk(
     }
 );
 
+// Slice לניהול המידע של ההתחברות
 const authSlice = createSlice({
     name: 'auth',
     initialState,
