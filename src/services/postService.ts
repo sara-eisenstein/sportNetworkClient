@@ -21,12 +21,20 @@ export const getAllPosts = async (): Promise<Post[]> => {
     console.log('Raw post data:', JSON.stringify(response.data, null, 2));
     console.log('First post example:', response.data[0]);
     
-    return response.data.map(post => ({
-        ...post,
-        // אין צורך להמיר את התאריך ל-Date, משאירים אותו כמחרוזת
-        userName: post.userName || "משתמש לא ידוע",
-        userProfilePicture: post.userProfilePicture || '/default-avatar.webp'
-    }));
+    // מיון הפוסטים לפי תאריך יצירה מהחדש לישן
+    const sortedPosts = response.data
+        .map(post => ({
+            ...post,
+            userName: post.userName || "משתמש לא ידוע",
+            userProfilePicture: post.userProfilePicture || '/default-avatar.webp'
+        }))
+        .sort((a, b) => {
+            const dateA = a.createdDate ? new Date(a.createdDate).getTime() : 0;
+            const dateB = b.createdDate ? new Date(b.createdDate).getTime() : 0;
+            return dateB - dateA;
+        });
+
+    return sortedPosts;
 };
 
 /**
@@ -36,12 +44,21 @@ export const getPostsByUserId = async (userId: number): Promise<Post[]> => {
     const response = await axios.get<Post[]>(`${API_URL}/api/Post/user/${userId}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
     });
-    return response.data.map(post => ({
-        ...post,
-        // אין צורך להמיר את התאריך ל-Date, משאירים אותו כמחרוזת
-        userName: post.userName || "משתמש לא ידוע",
-        userProfilePicture: post.userProfilePicture || '/default-avatar.webp'
-    }));
+    
+    // מיון הפוסטים לפי תאריך יצירה מהחדש לישן
+    const sortedPosts = response.data
+        .map(post => ({
+            ...post,
+            userName: post.userName || "משתמש לא ידוע",
+            userProfilePicture: post.userProfilePicture || '/default-avatar.webp'
+        }))
+        .sort((a, b) => {
+            const dateA = a.createdDate ? new Date(a.createdDate).getTime() : 0;
+            const dateB = b.createdDate ? new Date(b.createdDate).getTime() : 0;
+            return dateB - dateA;
+        });
+
+    return sortedPosts;
 };
 
 /**
