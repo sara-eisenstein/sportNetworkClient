@@ -15,6 +15,10 @@ const ChallengeCard: React.FC<Props> = ({ challenge, isCreator = false }) => {
     const [isUpdatingProgress, setIsUpdatingProgress] = useState(false);
     const [newProgress, setNewProgress] = useState(challenge.currentProgress || 0);
 
+    // וידוא שיש פרטי יוצר
+    const creatorName = challenge.creatorName || 'משתמש לא ידוע';
+    const creatorProfilePicture = challenge.creatorProfilePicture || '/default-avatar.webp';
+
     const handleDelete = () => {
         if (window.confirm('האם אתה בטוח שברצונך למחוק אתגר זה?')) {
             dispatch(removeChallenge(challenge.challengeId!));
@@ -62,12 +66,17 @@ const ChallengeCard: React.FC<Props> = ({ challenge, isCreator = false }) => {
         <div className="challenge-card">
             <div className="challenge-header">
                 <img 
-                    src={challenge.creatorProfilePicture || '/default-avatar.webp'} 
-                    alt={challenge.creatorName} 
+                    src={creatorProfilePicture}
+                    alt={creatorName}
                     className="creator-avatar"
+                    onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.onerror = null;
+                        target.src = '/default-avatar.webp';
+                    }}
                 />
                 <div className="challenge-info">
-                    <span className="creator-name">{challenge.creatorName}</span>
+                    <span className="creator-name" title={creatorName}>{creatorName}</span>
                     <span className={`challenge-status ${getStatusColor()}`}>
                         {challenge.status}
                     </span>
@@ -87,14 +96,6 @@ const ChallengeCard: React.FC<Props> = ({ challenge, isCreator = false }) => {
 
             <div className="challenge-details">
                 <div className="detail-item">
-                    <span className="detail-label">סוג:</span>
-                    <span>{challenge.type}</span>
-                </div>
-                <div className="detail-item">
-                    <span className="detail-label">יעד:</span>
-                    <span>{challenge.goal} {challenge.unit}</span>
-                </div>
-                <div className="detail-item">
                     <span className="detail-label">תאריך התחלה:</span>
                     <span>{new Date(challenge.startDate).toLocaleDateString('he-IL')}</span>
                 </div>
@@ -111,9 +112,6 @@ const ChallengeCard: React.FC<Props> = ({ challenge, isCreator = false }) => {
                         style={{ width: `${Math.min(progressPercentage, 100)}%` }}
                     />
                 </div>
-                <span className="progress-text">
-                    {challenge.currentProgress || 0} / {challenge.goal} {challenge.unit}
-                </span>
             </div>
 
             {challenge.isParticipating && isActive && (
@@ -122,11 +120,12 @@ const ChallengeCard: React.FC<Props> = ({ challenge, isCreator = false }) => {
                         <div className="progress-update-form">
                             <input
                                 type="number"
-                                value={newProgress}
-                                onChange={(e) => setNewProgress(Number(e.target.value))}
+                                value={Math.round((newProgress / challenge.goal) * 100)}
+                                onChange={(e) => setNewProgress((Number(e.target.value) / 100) * challenge.goal)}
                                 min="0"
-                                max={challenge.goal}
+                                max="100"
                             />
+                            <span>%</span>
                             <div className="progress-actions">
                                 <button onClick={handleProgressUpdate}>עדכן</button>
                                 <button onClick={() => setIsUpdatingProgress(false)}>ביטול</button>

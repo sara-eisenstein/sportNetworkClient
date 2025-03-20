@@ -1,5 +1,6 @@
 import axios from "axios";
 import { Challenge } from "../models/challenge";
+import { getPublicUserData, getUserImage } from "./userService";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -12,7 +13,26 @@ export const getAllChallenges = async (): Promise<Challenge[]> => {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
     });
-    return response.data;
+
+    // Get creator details for each challenge
+    const challengesWithCreators = await Promise.all(
+        response.data.map(async (challenge) => {
+            try {
+                const creatorData = await getPublicUserData(challenge.creatorId);
+                const profilePicture = await getUserImage(challenge.creatorId);
+                return {
+                    ...challenge,
+                    creatorName: `${creatorData.firstName} ${creatorData.lastName}`,
+                    creatorProfilePicture: profilePicture
+                };
+            } catch (error) {
+                console.error(`Failed to fetch creator data for challenge ${challenge.challengeId}:`, error);
+                return challenge;
+            }
+        })
+    );
+
+    return challengesWithCreators;
 };
 
 /**
@@ -49,6 +69,17 @@ export const createChallenge = async (challengeData: {
     StartDate: string;
     EndDate: string;
 }): Promise<Challenge> => {
+    // Get user info from token
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("No token found");
+
+    const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+    const userId = parseInt(tokenPayload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"]);
+    const userName = tokenPayload["name"];
+    const userProfilePicture = tokenPayload["picture"];
+
+    console.log('Creating challenge with creator ID:', userId);
+
     const formData = new FormData();
     formData.append('ChallengeId', '');
     formData.append('Title', challengeData.Title);
@@ -56,11 +87,16 @@ export const createChallenge = async (challengeData: {
     formData.append('Level', challengeData.Level.toString());
     formData.append('StartDate', challengeData.StartDate);
     formData.append('EndDate', challengeData.EndDate);
+    formData.append('CreatorId', userId.toString());
+    formData.append('CreatorName', userName || '');
+    if (userProfilePicture) {
+        formData.append('CreatorProfilePicture', userProfilePicture);
+    }
 
     const response = await axios.post<Challenge>(`${API_URL}/api/Challenge`, formData, {
         headers: {
             'Content-Type': 'multipart/form-data',
-            'Authorization': `Bearer ${localStorage.getItem("token")}`,
+            'Authorization': `Bearer ${token}`,
         },
     });
     return response.data;
