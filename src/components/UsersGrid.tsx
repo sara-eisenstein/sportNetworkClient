@@ -1,0 +1,77 @@
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { UserDto } from '../models/user';
+import { getUsers, getUserImage } from '../services/userService';
+import '../styles/UsersGrid.css';
+
+const UsersGrid: React.FC = () => {
+    const [users, setUsers] = useState<UserDto[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                setLoading(true);
+                const fetchedUsers = await getUsers();
+                
+                // Fetch profile images for all users
+                const usersWithImages = await Promise.all(
+                    fetchedUsers.map(async (user) => {
+                        try {
+                            const imageUrl = await getUserImage(user.userId);
+                            return { ...user, profilePicture: imageUrl };
+                        } catch (error) {
+                            console.error(`Error fetching image for user ${user.userId}:`, error);
+                            return { ...user, profilePicture: '/default-avatar.png' };
+                        }
+                    })
+                );
+                
+                setUsers(usersWithImages);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'שגיאה בטעינת המשתמשים');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUsers();
+    }, []);
+
+    if (loading) {
+        return <div className="users-grid-loading">טוען משתמשים...</div>;
+    }
+
+    if (error) {
+        return <div className="users-grid-error">{error}</div>;
+    }
+
+    return (
+        <div className="users-grid-container">
+            <h1 className="users-grid-title">משתמשים</h1>
+            <div className="users-grid">
+                {users.map((user) => (
+                    <Link 
+                        to={`/profile/${user.userId}`} 
+                        key={user.userId} 
+                        className="user-card"
+                    >
+                        <div className="user-image-container">
+                            <img 
+                                src={user.profilePicture || '/default-avatar.png'} 
+                                alt={`${user.firstName} ${user.lastName}`} 
+                                className="user-image"
+                            />
+                        </div>
+                        <div className="user-name">
+                            {user.firstName} {user.lastName}
+                        </div>
+                    </Link>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+export default UsersGrid; 

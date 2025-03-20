@@ -78,7 +78,7 @@ const UserProfile: React.FC = () => {
         fetchUserData();
     }, [userId]);
 
-    const handleFollowToggle = async () => {
+   const handleFollowToggle = async () => {
         if (!user) return;
 
         try {

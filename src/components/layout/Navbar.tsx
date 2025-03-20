@@ -31,10 +31,15 @@ const Navbar: React.FC = () => {
                     <i className={menuOpen ? 'fas fa-times' : 'fas fa-bars'} />
                 </div>
 
-                <ul className={menuOpen ? 'nav-menu active' : 'nav-menu'}>
+                <ul className={`nav-menu ${menuOpen ? 'active' : ''}`}>
                     <li className="nav-item">
                         <Link to="/" className="nav-link" onClick={() => setMenuOpen(false)}>
                             דף הבית
+                        </Link>
+                    </li>
+                    <li className="nav-item">
+                        <Link to="/profiles" className="nav-link" onClick={() => setMenuOpen(false)}>
+                            משתמשים
                         </Link>
                     </li>
                     <li className="nav-item">
@@ -42,12 +47,7 @@ const Navbar: React.FC = () => {
                             אתגרים
                         </Link>
                     </li>
-                    <li className="nav-item">
-                        <Link to="/workouts" className="nav-link" onClick={() => setMenuOpen(false)}>
-                            אימונים
-                        </Link>
-                    </li>
-                    {currentUser && (
+                    {currentUser ? (
                         <>
                             <li className="nav-item">
                                 <Link to="/profile" className="nav-link" onClick={() => setMenuOpen(false)}>
@@ -55,21 +55,23 @@ const Navbar: React.FC = () => {
                                 </Link>
                             </li>
                             <li className="nav-item">
-                                <button className="logout-button" onClick={handleLogout}>
+                                <button className="nav-link logout-button" onClick={() => {
+                                    handleLogout();
+                                    setMenuOpen(false);
+                                }}>
                                     התנתק
                                 </button>
                             </li>
                         </>
-                    )}
-                    {!currentUser && (
+                    ) : (
                         <>
                             <li className="nav-item">
                                 <Link to="/login" className="nav-link" onClick={() => setMenuOpen(false)}>
-                                    התחברות
+                                    התחבר
                                 </Link>
                             </li>
                             <li className="nav-item">
-                                <Link to="/register" className="nav-link register-link" onClick={() => setMenuOpen(false)}>
+                                <Link to="/register" className="nav-link" onClick={() => setMenuOpen(false)}>
                                     הרשמה
                                 </Link>
                             </li>

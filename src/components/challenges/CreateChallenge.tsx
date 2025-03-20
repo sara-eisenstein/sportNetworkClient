@@ -50,7 +50,7 @@ const CreateChallenge: React.FC = () => {
                         id="title"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
-                        placeholder="הכנס כותרת לאתגר"
+                        placeholder="שם האתגר"
                         required
                     />
                 </div>
@@ -61,27 +61,27 @@ const CreateChallenge: React.FC = () => {
                         id="description"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        placeholder="תאר את האתגר"
-                        rows={4}
+                        placeholder="תאר את מטרת האתגר בקצרה"
+                        rows={2}
                         required
                     />
                 </div>
 
-                <div className="form-group">
-                    <label htmlFor="level">רמת קושי</label>
-                    <select
-                        id="level"
-                        value={level}
-                        onChange={(e) => setLevel(Number(e.target.value))}
-                        required
-                    >
-                        <option value={1}>קל</option>
-                        <option value={2}>בינוני</option>
-                        <option value={3}>קשה</option>
-                    </select>
-                </div>
-
                 <div className="form-row">
+                    <div className="form-group">
+                        <label htmlFor="level">רמת קושי</label>
+                        <select
+                            id="level"
+                            value={level}
+                            onChange={(e) => setLevel(Number(e.target.value))}
+                            required
+                        >
+                            <option value={1}>קל</option>
+                            <option value={2}>בינוני</option>
+                            <option value={3}>קשה</option>
+                        </select>
+                    </div>
+
                     <div className="form-group">
                         <label htmlFor="startDate">תאריך התחלה</label>
                         <input
@@ -92,17 +92,17 @@ const CreateChallenge: React.FC = () => {
                             required
                         />
                     </div>
+                </div>
 
-                    <div className="form-group">
-                        <label htmlFor="endDate">תאריך סיום</label>
-                        <input
-                            type="date"
-                            id="endDate"
-                            value={endDate}
-                            onChange={(e) => setEndDate(e.target.value)}
-                            required
-                        />
-                    </div>
+                <div className="form-group">
+                    <label htmlFor="endDate">תאריך סיום</label>
+                    <input
+                        type="date"
+                        id="endDate"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        required
+                    />
                 </div>
 
                 <button type="submit">צור אתגר</button>

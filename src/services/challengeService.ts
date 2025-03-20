@@ -93,9 +93,24 @@ export const deleteChallenge = async (challengeId: number): Promise<void> => {
  * הצטרפות לאתגר
  */
 export const joinChallenge = async (challengeId: number): Promise<void> => {
-    await axios.post(`${API_URL}/api/Challenge/${challengeId}/join`, null, {
+    const formData = new FormData();
+    formData.append('ChallengeParticipantId', '');
+    formData.append('ChallengeId', challengeId.toString());
+
+    // Get userId from JWT token
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("No token found");
+
+    const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+    const userId = tokenPayload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
+
+    formData.append('UserId', userId);
+    formData.append('Progress', '0');
+
+    await axios.post(`${API_URL}/api/ChallengeParticipant`, formData, {
         headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            'Content-Type': 'multipart/form-data',
+            'Authorization': `Bearer ${token}`,
         },
     });
 };
