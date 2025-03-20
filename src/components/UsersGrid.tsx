@@ -53,7 +53,7 @@ const UsersGrid: React.FC = () => {
             <div className="users-grid">
                 {users.map((user) => (
                     <Link 
-                        to={`/profile/${user.userId}`} 
+                        to={`/user/${user.userId}`} 
                         key={user.userId} 
                         className="user-card"
                     >

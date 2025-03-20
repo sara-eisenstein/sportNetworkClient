@@ -366,7 +366,11 @@ export const getPostImage = async (postId: number): Promise<string> => {
 export const getUserPosts = async (userId: number): Promise<Post[]> => {
     try {
         console.log(`🔄 Fetching posts for user ${userId}`);
-        const response = await axios.get<Post[]>(`${API_URL}/api/Post/user/${userId}`);
+        const response = await axios.get<Post[]>(`${API_URL}/api/Post/user/${userId}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
         console.log(`✅ Successfully fetched ${response.data.length} posts for user ${userId}`);
         return response.data;
     } catch (error: any) {
@@ -375,6 +379,6 @@ export const getUserPosts = async (userId: number): Promise<Post[]> => {
             status: error.response?.status,
             data: error.response?.data
         });
-        throw error;
+        return []; // במקרה של שגיאה, נחזיר מערך ריק במקום לזרוק שגיאה
     }
 };

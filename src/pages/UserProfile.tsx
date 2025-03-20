@@ -2,23 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { PublicUserDto, FitnessLevel } from '../models/user';
 import { Post } from '../models/post';
-import { getPublicUserData, getUserImage } from '../services/userService';
+import { getPublicUserData, getUserImage, followUser, unfollowUser } from '../services/userService';
 import { getUserPosts } from '../services/postService';
 import PostCard from '../components/posts/PostCard';
-import { followUser, unfollowUser } from '../services/userService';
 import './UserProfile.css';
 
 // פונקציה עזר להמרת רמת כושר למחרוזת בעברית
 const getFitnessLevelText = (level: FitnessLevel | number): string => {
-    console.log('Raw fitness level:', level);
-    console.log('Fitness level type:', typeof level);
-    console.log('FitnessLevel enum:', FitnessLevel);
-    
-    // המרה למספר אם צריך
     const levelNum = Number(level);
-    console.log('Converted to number:', levelNum);
     
-    // בדיקה לפי ערך מספרי
     if (levelNum === 0 || levelNum === FitnessLevel.Beginner) {
         return 'מתחיל';
     } else if (levelNum === 1 || levelNum === FitnessLevel.Intermediate) {
@@ -28,12 +20,6 @@ const getFitnessLevelText = (level: FitnessLevel | number): string => {
     } else if (levelNum === 3 || levelNum === FitnessLevel.Professional) {
         return 'מקצועי';
     } else {
-        console.warn('Unknown fitness level value:', {
-            original: level,
-            type: typeof level,
-            converted: levelNum,
-            enumValue: FitnessLevel[levelNum]
-        });
         return 'לא ידוע';
     }
 };
@@ -78,7 +64,7 @@ const UserProfile: React.FC = () => {
         fetchUserData();
     }, [userId]);
 
-   const handleFollowToggle = async () => {
+    const handleFollowToggle = async () => {
         if (!user) return;
 
         try {
