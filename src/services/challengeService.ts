@@ -166,7 +166,7 @@ export const leaveChallenge = async (challengeId: number): Promise<void> => {
  * עדכון התקדמות באתגר
  */
 export const updateProgress = async (challengeId: number, progress: number): Promise<Challenge> => {
-    const response = await axios.post<Challenge>(
+    const response = await axios.put<Challenge>(
         `${API_URL}/api/Challenge/${challengeId}/progress`,
         { progress },
         {

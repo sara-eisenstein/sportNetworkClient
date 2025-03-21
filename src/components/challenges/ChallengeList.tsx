@@ -4,6 +4,7 @@ import { AppDispatch, RootState } from '../../store/store';
 import { fetchAllChallenges, fetchUserChallenges } from '../../store/slices/challengeSlice';
 import ChallengeCard from './ChallengeCard';
 import CreateChallenge from './CreateChallenge';
+import CompletedChallenges from './CompletedChallenges';
 import './ChallengeList.css';
 
 interface Props {
@@ -18,6 +19,7 @@ const ChallengeList: React.FC<Props> = ({ userId, showCreateChallenge = false })
     const [activeFilter, setActiveFilter] = useState<'all' | 'my'>('all');
     const [showOnlyActive, setShowOnlyActive] = useState(true);
     const [userChallengesError, setUserChallengesError] = useState<boolean>(false);
+    const [showCompleted, setShowCompleted] = useState(false);
 
     useEffect(() => {
         const fetchChallenges = async () => {
@@ -60,10 +62,22 @@ const ChallengeList: React.FC<Props> = ({ userId, showCreateChallenge = false })
         return <div className="challenges-error">שגיאה בטעינת האתגרים: {error}</div>;
     }
 
+    if (showCompleted) {
+        return (
+            <div className="challenge-list-container">
+                <button 
+                    className="view-toggle-button"
+                    onClick={() => setShowCompleted(false)}
+                >
+                    חזרה לאתגרים פעילים
+                </button>
+                <CompletedChallenges />
+            </div>
+        );
+    }
+
     return (
         <div className="challenges-container">
-            {showCreateChallenge && <CreateChallenge />}
-
             <div className="challenges-toggle">
                 <button 
                     onClick={() => setShowOnlyActive(!showOnlyActive)}
@@ -79,6 +93,16 @@ const ChallengeList: React.FC<Props> = ({ userId, showCreateChallenge = false })
                         {activeFilter === 'my' ? 'הצג את כל האתגרים' : 'הצג את האתגרים שלי'}
                     </button>
                 )}
+            </div>
+
+            <div className="challenge-list-header">
+                {showCreateChallenge && <CreateChallenge />}
+                <button 
+                    className="view-toggle-button"
+                    onClick={() => setShowCompleted(true)}
+                >
+                    הצג אתגרים שהסתיימו
+                </button>
             </div>
 
             {(filteredChallenges.length === 0 || (activeFilter === 'my' && userChallengesError)) ? (
