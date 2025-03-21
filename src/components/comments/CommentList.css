@@ -85,6 +85,8 @@
     align-items: center;
     margin-bottom: 1rem;
     gap: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #ebeef2;
 }
 
 .user-avatar {
@@ -100,12 +102,27 @@
     font-weight: 600;
     color: #2c3e50;
     font-size: 1rem;
+    text-decoration: none;
+    transition: color 0.2s ease;
+    margin-left: 0.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.user-name:hover {
+    color: #3498db;
+}
+
+.comment-metadata {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
 }
 
 .comment-date {
     margin-right: auto;
     color: #6c757d;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 500;
 }
 

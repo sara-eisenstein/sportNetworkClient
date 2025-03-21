@@ -165,19 +165,23 @@ const CommentList: React.FC<Props> = ({ postId }) => {
                             <div className="comment-header">
                                 <img 
                                     src={profileImages[comment.userId] || '/default-avatar.webp'}
-                                    alt={comment.userName} 
+                                    alt={comment.userName || 'משתמש'} 
                                     className="user-avatar"
                                     onError={(e) => {
                                         (e.target as HTMLImageElement).src = '/default-avatar.webp';
                                     }}
                                 />
-                                <span className="user-name">{comment.userName}</span>
-                                <span className="comment-date">
-                                    {(() => {
-                                        console.log('Debug - createdDate value:', comment.createdDate);
-                                        return formatDate(comment.createdDate);
-                                    })()}
-                                </span>
+                                <div className="comment-metadata">
+                                    <span className="user-name">
+                                        {comment.userName || 'משתמש לא ידוע'}
+                                    </span>
+                                    <span className="comment-date">
+                                        {(() => {
+                                            console.log('Debug - createdDate value:', comment.createdDate);
+                                            return formatDate(comment.createdDate);
+                                        })()}
+                                    </span>
+                                </div>
                             </div>
                             
                             {editingCommentId === comment.commentId ? (

@@ -1,5 +1,6 @@
 import axios from "axios";
 import { Comment } from "../models/comment";
+import { getPublicUserData } from "./userService";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -17,10 +18,29 @@ export const getCommentsByPostId = async (postId: number): Promise<Comment[]> =>
                 Authorization: `Bearer ${token}`
             }
         });
+
+        // Get user data for each comment
+        const commentsWithUserData = await Promise.all(
+            response.data.map(async (comment) => {
+                try {
+                    const userData = await getPublicUserData(comment.userId);
+                    return {
+                        ...comment,
+                        userName: `${userData.firstName} ${userData.lastName}`,
+                        userProfilePicture: userData.profilePicture
+                    };
+                } catch (error) {
+                    console.error(`Failed to fetch user data for comment ${comment.commentId}:`, error);
+                    return comment;
+                }
+            })
+        );
+
         // Sort comments by date, newest first
-        const sortedComments = response.data.sort((a, b) => 
+        const sortedComments = commentsWithUserData.sort((a, b) => 
             new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime()
         );
+        
         console.log(`✅ Comments fetched and sorted successfully:`, sortedComments);
         return sortedComments;
     } catch (error: any) {
