@@ -5,6 +5,28 @@ import { fetchComments, createComment, editComment, removeComment } from '../../
 import { Comment } from '../../models/comment';
 import { getUserImage } from '../../services/userService';
 
+const formatDate = (dateString: string) => {
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) {
+            console.error('Invalid date:', dateString);
+            return 'תאריך לא זמין';
+        }
+        
+        return date.toLocaleString('he-IL', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        });
+    } catch (error) {
+        console.error('Error formatting date:', error);
+        return 'תאריך לא זמין';
+    }
+};
+
 interface Props {
     postId: number;
 }
@@ -150,7 +172,10 @@ const CommentList: React.FC<Props> = ({ postId }) => {
                                 />
                                 <span className="user-name">{comment.userName}</span>
                                 <span className="comment-date">
-                                    {new Date(comment.dateCreated).toLocaleDateString('he-IL')}
+                                    {(() => {
+                                        console.log('Debug - createdDate value:', comment.createdDate);
+                                        return formatDate(comment.createdDate);
+                                    })()}
                                 </span>
                             </div>
                             

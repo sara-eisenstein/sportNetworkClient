@@ -27,7 +27,7 @@ export const fetchComments = createAsyncThunk(
 
 export const createComment = createAsyncThunk(
     "comments/create",
-    async (comment: Omit<Comment, "commentId" | "dateCreated" | "userName" | "userProfilePicture">, thunkAPI) => {
+    async (comment: Omit<Comment, "commentId" | "createdDate" | "userName" | "userProfilePicture">, thunkAPI) => {
         try {
             return await addComment(comment);
         } catch (error) {

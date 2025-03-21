@@ -19,7 +19,7 @@ export const getCommentsByPostId = async (postId: number): Promise<Comment[]> =>
         });
         // Sort comments by date, newest first
         const sortedComments = response.data.sort((a, b) => 
-            new Date(b.dateCreated).getTime() - new Date(a.dateCreated).getTime()
+            new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime()
         );
         console.log(`✅ Comments fetched and sorted successfully:`, sortedComments);
         return sortedComments;
@@ -41,7 +41,7 @@ export const getCommentsByPostId = async (postId: number): Promise<Comment[]> =>
 /**
  * הוספת תגובה חדשה
  */
-export const addComment = async (comment: Omit<Comment, "commentId" | "dateCreated" | "userName" | "userProfilePicture">): Promise<Comment> => {
+export const addComment = async (comment: Omit<Comment, "commentId" | "createdDate" | "userName" | "userProfilePicture">): Promise<Comment> => {
     const token = localStorage.getItem("token");
     const now = new Date();
     const formattedDate = now.toLocaleDateString('en-GB'); // DD/MM/YYYY format
