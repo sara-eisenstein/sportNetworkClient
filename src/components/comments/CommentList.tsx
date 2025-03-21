@@ -4,6 +4,7 @@ import { RootState, AppDispatch } from '../../store/store';
 import { fetchComments, createComment, editComment, removeComment } from '../../store/slices/commentSlice';
 import { Comment } from '../../models/comment';
 import { getUserImage } from '../../services/userService';
+import './CommentList.css';
 
 const formatDate = (dateString: string) => {
     try {

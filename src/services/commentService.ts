@@ -44,7 +44,7 @@ export const getCommentsByPostId = async (postId: number): Promise<Comment[]> =>
 export const addComment = async (comment: Omit<Comment, "commentId" | "createdDate" | "userName" | "userProfilePicture">): Promise<Comment> => {
     const token = localStorage.getItem("token");
     const now = new Date();
-    const formattedDate = now.toLocaleDateString('en-GB'); // DD/MM/YYYY format
+    const formattedDate = now.toISOString(); // שולח תאריך בפורמט ISO עם שעה
     
     const formData = new FormData();
     formData.append('CommentId', '');
