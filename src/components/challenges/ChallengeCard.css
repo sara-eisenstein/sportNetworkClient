@@ -9,6 +9,8 @@
 .challenge-header {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
     margin-bottom: 16px;
 }
 
@@ -72,6 +74,7 @@
 .challenge-title {
     margin: 0 0 8px 0;
     font-size: 1.2em;
+    padding-left: 100px;
 }
 
 .challenge-description {
@@ -231,8 +234,8 @@
 
 .participants-count {
     position: absolute;
-    top: 10px;
-    left: 10px;
+    top: 20px;
+    left: 20px;
     background-color: #e3f2fd;
     color: #1976d2;
     padding: 4px 8px;

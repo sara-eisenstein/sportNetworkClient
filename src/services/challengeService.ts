@@ -1,6 +1,6 @@
 import axios from "axios";
 import { Challenge } from "../models/challenge";
-import { getPublicUserData, getUserImage } from "./userService";
+import { store } from "../store/store";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -13,29 +13,7 @@ export const getAllChallenges = async (): Promise<Challenge[]> => {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
     });
-
-    // Get creator details for each challenge
-    const challengesWithCreators = await Promise.all(
-        response.data.map(async (challenge) => {
-            try {
-                if (challenge.creatorId) {
-                    const creatorData = await getPublicUserData(challenge.creatorId);
-                    const profilePicture = await getUserImage(challenge.creatorId);
-                    return {
-                        ...challenge,
-                        creatorName: `${creatorData.firstName} ${creatorData.lastName}`,
-                        creatorProfilePicture: profilePicture
-                    };
-                }
-                return challenge;
-            } catch (error) {
-                console.error(`Failed to fetch creator data for challenge ${challenge.challengeId}:`, error);
-                return challenge;
-            }
-        })
-    );
-
-    return challengesWithCreators;
+    return response.data;
 };
 
 /**
@@ -76,15 +54,11 @@ export const createChallenge = async (challengeData: {
     StartDate: string;
     EndDate: string;
 }): Promise<Challenge> => {
-    // Get user info from token
-    const token = localStorage.getItem("token");
-    if (!token) throw new Error("No token found");
+    // Get user info from Redux store
+    const currentUser = store.getState().auth.currentUser;
+    if (!currentUser) throw new Error("User not authenticated");
 
-    const tokenPayload = JSON.parse(atob(token.split('.')[1]));
-    const userId = parseInt(tokenPayload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"]);
-    const userName = tokenPayload["name"];
-    const userProfilePicture = tokenPayload["picture"];
-
+    const userId = currentUser.userId;
     console.log('Creating challenge with creator ID:', userId);
 
     const formData = new FormData();
@@ -95,10 +69,9 @@ export const createChallenge = async (challengeData: {
     formData.append('StartDate', challengeData.StartDate);
     formData.append('EndDate', challengeData.EndDate);
     formData.append('CreatorId', userId.toString());
-    formData.append('CreatorName', userName || '');
-    if (userProfilePicture) {
-        formData.append('CreatorProfilePicture', userProfilePicture);
-    }
+
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("No token found");
 
     const response = await axios.post<Challenge>(`${API_URL}/api/Challenge`, formData, {
         headers: {

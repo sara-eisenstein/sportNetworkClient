@@ -28,10 +28,6 @@ const ChallengeCard: React.FC<Props> = ({ challenge, isCreator = false }) => {
         }
     }, [dispatch, challenge.challengeId]);
 
-    // וידוא שיש פרטי יוצר
-    const creatorName = challenge.creatorName || 'משתמש לא ידוע';
-    const creatorProfilePicture = challenge.creatorProfilePicture || '/default-avatar.webp';
-
     const handleDelete = () => {
         if (window.confirm('האם אתה בטוח שברצונך למחוק אתגר זה?')) {
             dispatch(removeChallenge(challenge.challengeId!));
@@ -75,23 +71,13 @@ const ChallengeCard: React.FC<Props> = ({ challenge, isCreator = false }) => {
             <div className="participants-count">
                 {participants.length} משתתפים
             </div>
+            <h3 className="challenge-title">{challenge.title}</h3>
+            <p className="challenge-description">{challenge.description}</p>
+            
             <div className="challenge-header">
-                <img 
-                    src={creatorProfilePicture}
-                    alt={creatorName}
-                    className="creator-avatar"
-                    onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.onerror = null;
-                        target.src = '/default-avatar.webp';
-                    }}
-                />
-                <div className="challenge-info">
-                    <span className="creator-name" title={creatorName}>{creatorName}</span>
-                    <span className={`challenge-status ${getStatusColor()}`}>
-                        {challenge.status}
-                    </span>
-                </div>
+                <span className={`challenge-status ${getStatusColor()}`}>
+                    {challenge.status}
+                </span>
                 {isCreator && (
                     <button 
                         className="delete-button"
@@ -101,9 +87,6 @@ const ChallengeCard: React.FC<Props> = ({ challenge, isCreator = false }) => {
                     </button>
                 )}
             </div>
-
-            <h3 className="challenge-title">{challenge.title}</h3>
-            <p className="challenge-description">{challenge.description}</p>
 
             <div className="challenge-details">
                 <div className="detail-item">

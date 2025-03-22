@@ -21,8 +21,6 @@ export interface Challenge {
     endDate: string;
     type?: ChallengeType;
     creatorId?: number;
-    creatorName?: string;
-    creatorProfilePicture?: string;
     status?: ChallengeStatus;
     progress?: string; // "true" או "false" - האם המשתתף השלים את האתגר
     participantsCount?: number;
