@@ -181,8 +181,32 @@
     cursor: not-allowed;
 }
 
+.participants-section {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #eee;
+}
+
+.view-participants-button {
+    width: 100%;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-bottom: 12px;
+    background-color: #f0f0f0;
+    color: #333;
+    border: 1px solid #ddd;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+.view-participants-button:hover {
+    background-color: #e0e0e0;
+}
+
 .participants-count {
     text-align: center;
     font-size: 0.9em;
     color: #666;
+    margin-bottom: 12px;
 } 

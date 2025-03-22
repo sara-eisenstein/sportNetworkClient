@@ -3,6 +3,7 @@ import { useDispatch } from 'react-redux';
 import { AppDispatch } from '../../store/store';
 import { removeChallenge, participateInChallenge, quitChallenge, updateChallengeProgress } from '../../store/slices/challengeSlice';
 import { Challenge, ChallengeStatus } from '../../models/challenge';
+import ParticipantList from './ParticipantList';
 import './ChallengeCard.css';
 
 interface Props {
@@ -14,6 +15,7 @@ const ChallengeCard: React.FC<Props> = ({ challenge, isCreator = false }) => {
     const dispatch = useDispatch<AppDispatch>();
     const [isUpdatingProgress, setIsUpdatingProgress] = useState(false);
     const [newProgress, setNewProgress] = useState(challenge.currentProgress || 0);
+    const [showParticipants, setShowParticipants] = useState(false);
 
     // וידוא שיש פרטי יוצר
     const creatorName = challenge.creatorName || 'משתמש לא ידוע';
@@ -149,8 +151,25 @@ const ChallengeCard: React.FC<Props> = ({ challenge, isCreator = false }) => {
                 </button>
             )}
 
-            <div className="participants-count">
-                {challenge.participantsCount} משתתפים
+            <div className="participants-section">
+                <button 
+                    className="view-participants-button"
+                    onClick={() => setShowParticipants(!showParticipants)}
+                >
+                    {showParticipants ? 'הסתר משתתפים' : 'הצג משתתפים'}
+                </button>
+                
+                <div className="participants-count">
+                    {challenge.participantsCount} משתתפים
+                </div>
+
+                {showParticipants && (
+                    <ParticipantList 
+                        challengeId={challenge.challengeId!}
+                        goal={challenge.goal}
+                        unit={challenge.unit}
+                    />
+                )}
             </div>
         </div>
     );

@@ -8,7 +8,7 @@ const API_URL = process.env.REACT_APP_API_URL;
  */
 export const getChallengeParticipants = async (challengeId: number): Promise<ChallengeParticipant[]> => {
     const response = await axios.get<ChallengeParticipant[]>(
-        `${API_URL}/api/Challenge/${challengeId}/participants`,
+        `${API_URL}/api/Challenge/participants/${challengeId}`,
         {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem("token")}`,
