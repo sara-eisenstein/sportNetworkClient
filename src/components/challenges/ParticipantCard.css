@@ -2,22 +2,23 @@
     background-color: white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    padding: 16px;
-    margin-bottom: 12px;
+    padding: 12px;
+    margin-bottom: 8px;
 }
 
 .participant-header {
     display: flex;
     align-items: center;
-    margin-bottom: 16px;
 }
 
 .participant-avatar {
-    width: 50px;
-    height: 50px;
+    width: 45px;
+    height: 45px;
     border-radius: 50%;
     margin-left: 12px;
     object-fit: cover;
+    border: 2px solid #e0e0e0;
+    background-color: #f5f5f5;
 }
 
 .participant-info {
@@ -27,8 +28,8 @@
 .participant-name {
     display: block;
     font-weight: bold;
-    font-size: 1.1em;
-    margin-bottom: 4px;
+    font-size: 1em;
+    color: #333;
 }
 
 .participant-join-date {
