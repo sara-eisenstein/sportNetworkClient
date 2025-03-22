@@ -2,6 +2,7 @@ import { ChallengeStatus } from './challenge';
 
 export interface ChallengeParticipant {
     userId: number;
+    challengeId: number;
     firstName: string;
     lastName: string;
     goals: string;

@@ -8,7 +8,9 @@ import {
 } from "../../services/challengeParticipantService";
 
 interface ChallengeParticipantState {
-    participants: ChallengeParticipant[];
+    participantsByChallenge: {
+        [challengeId: number]: ChallengeParticipant[];
+    };
     userParticipations: ChallengeParticipant[];
     selectedParticipant: ChallengeParticipant | null;
     loading: boolean;
@@ -16,7 +18,7 @@ interface ChallengeParticipantState {
 }
 
 const initialState: ChallengeParticipantState = {
-    participants: [],
+    participantsByChallenge: {},
     userParticipations: [],
     selectedParticipant: null,
     loading: false,
@@ -27,7 +29,8 @@ export const fetchChallengeParticipants = createAsyncThunk(
     "challengeParticipants/fetchAll",
     async (challengeId: number, thunkAPI) => {
         try {
-            return await getChallengeParticipants(challengeId);
+            const participants = await getChallengeParticipants(challengeId);
+            return { challengeId, participants };
         } catch (error) {
             return thunkAPI.rejectWithValue("Failed to fetch challenge participants");
         }
@@ -80,9 +83,9 @@ const challengeParticipantSlice = createSlice({
             .addCase(fetchChallengeParticipants.pending, (state) => {
                 state.loading = true;
             })
-            .addCase(fetchChallengeParticipants.fulfilled, (state, action: PayloadAction<ChallengeParticipant[]>) => {
+            .addCase(fetchChallengeParticipants.fulfilled, (state, action: PayloadAction<{challengeId: number, participants: ChallengeParticipant[]}>) => {
                 state.loading = false;
-                state.participants = action.payload;
+                state.participantsByChallenge[action.payload.challengeId] = action.payload.participants;
                 state.error = null;
             })
             .addCase(fetchChallengeParticipants.rejected, (state, action) => {
@@ -117,12 +120,16 @@ const challengeParticipantSlice = createSlice({
             })
             // Update selected participant
             .addCase(updateProgress.fulfilled, (state, action: PayloadAction<ChallengeParticipant>) => {
-                const index = state.participants.findIndex(
-                    p => p.userId === action.payload.userId
-                );
-                if (index !== -1) {
-                    state.participants[index] = action.payload;
+                const challengeId = action.payload.challengeId;
+                const participants = state.participantsByChallenge[challengeId];
+                
+                if (participants) {
+                    const index = participants.findIndex(p => p.userId === action.payload.userId);
+                    if (index !== -1) {
+                        state.participantsByChallenge[challengeId][index] = action.payload;
+                    }
                 }
+
                 const userIndex = state.userParticipations.findIndex(
                     p => p.userId === action.payload.userId
                 );

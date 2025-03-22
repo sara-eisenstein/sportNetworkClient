@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { AppDispatch } from '../../store/store';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../../store/store';
 import { removeChallenge, participateInChallenge, quitChallenge, updateChallengeProgress } from '../../store/slices/challengeSlice';
 import { Challenge, ChallengeStatus } from '../../models/challenge';
+import { fetchChallengeParticipants } from '../../store/slices/challengeParticipantSlice';
 import ParticipantList from './ParticipantList';
 import './ChallengeCard.css';
 
@@ -16,6 +17,18 @@ const ChallengeCard: React.FC<Props> = ({ challenge, isCreator = false }) => {
     const [isUpdatingProgress, setIsUpdatingProgress] = useState(false);
     const [newProgress, setNewProgress] = useState(challenge.currentProgress || 0);
     const [showParticipants, setShowParticipants] = useState(false);
+    
+    // קבלת המשתתפים הספציפיים לאתגר הזה
+    const participants = useSelector((state: RootState) => 
+        state.challengeParticipants.participantsByChallenge[challenge.challengeId!] || []
+    );
+
+    useEffect(() => {
+        // טעינת רשימת המשתתפים מיד כשהקומפוננטה נטענת
+        if (challenge.challengeId) {
+            dispatch(fetchChallengeParticipants(challenge.challengeId));
+        }
+    }, [dispatch, challenge.challengeId]);
 
     // וידוא שיש פרטי יוצר
     const creatorName = challenge.creatorName || 'משתמש לא ידוע';
@@ -160,7 +173,7 @@ const ChallengeCard: React.FC<Props> = ({ challenge, isCreator = false }) => {
                 </button>
                 
                 <div className="participants-count">
-                    {challenge.participantsCount} משתתפים
+                    {participants.length} משתתפים
                 </div>
 
                 {showParticipants && (

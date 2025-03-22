@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../store/store';
 import { fetchChallengeParticipants } from '../../store/slices/challengeParticipantSlice';
+import { ChallengeParticipant } from '../../models/challengeParticipant';
 import ParticipantCard from './ParticipantCard';
 import './ParticipantList.css';
 
@@ -11,7 +12,8 @@ interface Props {
 
 const ParticipantList: React.FC<Props> = ({ challengeId }) => {
     const dispatch = useDispatch<AppDispatch>();
-    const { participants, loading, error } = useSelector((state: RootState) => state.challengeParticipants);
+    const { participantsByChallenge, loading, error } = useSelector((state: RootState) => state.challengeParticipants);
+    const participants = participantsByChallenge[challengeId] || [];
 
     useEffect(() => {
         dispatch(fetchChallengeParticipants(challengeId));
@@ -25,7 +27,7 @@ const ParticipantList: React.FC<Props> = ({ challengeId }) => {
             <h3>משתתפים באתגר</h3>
             
             <div className="participants-list">
-                {participants.map(participant => (
+                {participants.map((participant: ChallengeParticipant) => (
                     <ParticipantCard 
                         key={participant.userId} 
                         participant={participant}
