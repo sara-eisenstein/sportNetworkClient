@@ -18,13 +18,16 @@ export const getAllChallenges = async (): Promise<Challenge[]> => {
     const challengesWithCreators = await Promise.all(
         response.data.map(async (challenge) => {
             try {
-                const creatorData = await getPublicUserData(challenge.creatorId);
-                const profilePicture = await getUserImage(challenge.creatorId);
-                return {
-                    ...challenge,
-                    creatorName: `${creatorData.firstName} ${creatorData.lastName}`,
-                    creatorProfilePicture: profilePicture
-                };
+                if (challenge.creatorId) {
+                    const creatorData = await getPublicUserData(challenge.creatorId);
+                    const profilePicture = await getUserImage(challenge.creatorId);
+                    return {
+                        ...challenge,
+                        creatorName: `${creatorData.firstName} ${creatorData.lastName}`,
+                        creatorProfilePicture: profilePicture
+                    };
+                }
+                return challenge;
             } catch (error) {
                 console.error(`Failed to fetch creator data for challenge ${challenge.challengeId}:`, error);
                 return challenge;
@@ -39,11 +42,15 @@ export const getAllChallenges = async (): Promise<Challenge[]> => {
  * מביא אתגרים של משתמש מסוים
  */
 export const getUserChallenges = async (userId: number): Promise<Challenge[]> => {
-    const response = await axios.get<Challenge[]>(`${API_URL}/api/Challenge/user/${userId}`, {
-        headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-    });
+    const response = await axios.get<Challenge[]>(
+        `${API_URL}/challengeToUser?userId=${userId}`,
+        {
+            headers: {
+                'accept': '*/*',
+                'Authorization': `Bearer ${localStorage.getItem("token")}`,
+            },
+        }
+    );
     return response.data;
 };
 
@@ -165,7 +172,7 @@ export const leaveChallenge = async (challengeId: number): Promise<void> => {
 /**
  * עדכון התקדמות באתגר
  */
-export const updateProgress = async (challengeId: number, progress: number): Promise<Challenge> => {
+export const updateProgress = async (challengeId: number, progress: string): Promise<Challenge> => {
     const response = await axios.put<Challenge>(
         `${API_URL}/api/Challenge/${challengeId}/progress`,
         { progress },

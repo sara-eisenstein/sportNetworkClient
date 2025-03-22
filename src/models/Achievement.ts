@@ -3,6 +3,6 @@ export interface Achievement {
     userId: number; // מזהה משתמש
     title: string; // כותרת ההישג
     description: string; // תיאור ההישג
-    dateEarned: Date; // תאריך קבלת ההישג
+    dateEarned: string; // תאריך קבלת ההישג בפורמט ISO
   }
   

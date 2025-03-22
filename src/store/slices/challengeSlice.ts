@@ -115,7 +115,7 @@ export const quitChallenge = createAsyncThunk(
 
 export const updateChallengeProgress = createAsyncThunk(
     "challenges/updateProgress",
-    async ({ challengeId, progress }: { challengeId: number; progress: number }, thunkAPI) => {
+    async ({ challengeId, progress }: { challengeId: number; progress: string }, thunkAPI) => {
         try {
             return await updateProgress(challengeId, progress);
         } catch (error) {
@@ -193,7 +193,11 @@ const challengeSlice = createSlice({
                 const challenge = state.challenges.find(c => c.challengeId === action.payload);
                 if (challenge) {
                     challenge.isParticipating = true;
-                    challenge.participantsCount++;
+                    if (challenge.participantsCount !== undefined) {
+                        challenge.participantsCount++;
+                    } else {
+                        challenge.participantsCount = 1;
+                    }
                 }
                 state.error = null;
             })
@@ -205,7 +209,9 @@ const challengeSlice = createSlice({
                 const challenge = state.challenges.find(c => c.challengeId === action.payload);
                 if (challenge) {
                     challenge.isParticipating = false;
-                    challenge.participantsCount--;
+                    if (challenge.participantsCount !== undefined && challenge.participantsCount > 0) {
+                        challenge.participantsCount--;
+                    }
                 }
                 state.error = null;
             })
@@ -216,12 +222,12 @@ const challengeSlice = createSlice({
             .addCase(updateChallengeProgress.fulfilled, (state, action: PayloadAction<Challenge>) => {
                 const challenge = state.challenges.find(c => c.challengeId === action.payload.challengeId);
                 if (challenge) {
-                    challenge.currentProgress = action.payload.currentProgress;
+                    challenge.progress = action.payload.progress;
                     challenge.status = action.payload.status;
                 }
                 const userChallenge = state.userChallenges.find(c => c.challengeId === action.payload.challengeId);
                 if (userChallenge) {
-                    userChallenge.currentProgress = action.payload.currentProgress;
+                    userChallenge.progress = action.payload.progress;
                     userChallenge.status = action.payload.status;
                 }
                 state.error = null;

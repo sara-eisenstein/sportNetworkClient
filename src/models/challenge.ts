@@ -16,16 +16,15 @@ export interface Challenge {
     challengeId?: number;
     title: string;
     description: string;
-    type: ChallengeType;
-    startDate: Date;
-    endDate: Date;
-    goal: number; // המטרה המספרית (למשל: 5 ק"מ ריצה)
-    unit: string; // יחידת המדידה (ק"מ, דקות, חזרות וכו')
-    creatorId: number;
+    level: number;
+    startDate: string;
+    endDate: string;
+    type?: ChallengeType;
+    creatorId?: number;
     creatorName?: string;
     creatorProfilePicture?: string;
-    status: ChallengeStatus;
-    currentProgress?: number;
-    participantsCount: number;
+    status?: ChallengeStatus;
+    progress?: string; // "true" או "false" - האם המשתתף השלים את האתגר
+    participantsCount?: number;
     isParticipating?: boolean;
 } 

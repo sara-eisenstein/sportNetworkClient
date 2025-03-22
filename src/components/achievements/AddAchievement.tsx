@@ -14,7 +14,7 @@ const AddAchievement: React.FC<Props> = ({ userId }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    dispatch(addNewAchievement({ userId, title, description, dateEarned: new Date() }));
+    dispatch(addNewAchievement({ userId, title, description, dateEarned: new Date().toISOString() }));
   };
 
   return (

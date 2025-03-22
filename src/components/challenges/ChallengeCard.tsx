@@ -14,8 +14,6 @@ interface Props {
 
 const ChallengeCard: React.FC<Props> = ({ challenge, isCreator = false }) => {
     const dispatch = useDispatch<AppDispatch>();
-    const [isUpdatingProgress, setIsUpdatingProgress] = useState(false);
-    const [newProgress, setNewProgress] = useState(challenge.currentProgress || 0);
     const [showParticipants, setShowParticipants] = useState(false);
     
     // קבלת המשתתפים הספציפיים לאתגר הזה
@@ -49,13 +47,10 @@ const ChallengeCard: React.FC<Props> = ({ challenge, isCreator = false }) => {
     };
 
     const handleProgressUpdate = () => {
-        if (newProgress >= 0 && newProgress <= challenge.goal) {
-            dispatch(updateChallengeProgress({
-                challengeId: challenge.challengeId!,
-                progress: newProgress
-            }));
-            setIsUpdatingProgress(false);
-        }
+        dispatch(updateChallengeProgress({
+            challengeId: challenge.challengeId!,
+            progress: challenge.progress === "true" ? "false" : "true"
+        }));
     };
 
     const getStatusColor = () => {
@@ -68,8 +63,6 @@ const ChallengeCard: React.FC<Props> = ({ challenge, isCreator = false }) => {
                 return 'status-active';
         }
     };
-
-    const progressPercentage = ((challenge.currentProgress || 0) / challenge.goal) * 100;
 
     // Check if the challenge is currently active based on dates
     const currentDate = new Date();
@@ -121,46 +114,26 @@ const ChallengeCard: React.FC<Props> = ({ challenge, isCreator = false }) => {
             </div>
 
             <div className="progress-section">
-                <div className="progress-bar">
-                    <div 
-                        className="progress-fill"
-                        style={{ width: `${Math.min(progressPercentage, 100)}%` }}
-                    />
+                <div className="progress-status">
+                    {challenge.progress === "true" ? 'הושלם ✓' : 'טרם הושלם'}
                 </div>
             </div>
 
             {challenge.isParticipating && isActive && (
                 <div className="update-progress">
-                    {isUpdatingProgress ? (
-                        <div className="progress-update-form">
-                            <input
-                                type="number"
-                                value={Math.round((newProgress / challenge.goal) * 100)}
-                                onChange={(e) => setNewProgress((Number(e.target.value) / 100) * challenge.goal)}
-                                min="0"
-                                max="100"
-                            />
-                            <span>%</span>
-                            <div className="progress-actions">
-                                <button onClick={handleProgressUpdate}>עדכן</button>
-                                <button onClick={() => setIsUpdatingProgress(false)}>ביטול</button>
-                            </div>
-                        </div>
-                    ) : (
-                        <button onClick={() => setIsUpdatingProgress(true)}>
-                            עדכן התקדמות
-                        </button>
-                    )}
+                    <button onClick={handleProgressUpdate}>
+                        {challenge.progress === "true" ? 'בטל השלמה' : 'סמן כהושלם'}
+                    </button>
                 </div>
             )}
 
-            {!isCreator && (
+            {!isCreator && !challenge.isParticipating && (
                 <button 
-                    className={`participation-button ${challenge.isParticipating ? 'participating' : ''}`}
+                    className="participation-button"
                     onClick={handleParticipation}
                     disabled={!isActive}
                 >
-                    {challenge.isParticipating ? 'עזוב אתגר' : 'הצטרף לאתגר'}
+                    הצטרף לאתגר
                 </button>
             )}
 
