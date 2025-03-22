@@ -72,6 +72,9 @@ const ChallengeCard: React.FC<Props> = ({ challenge, isCreator = false }) => {
 
     return (
         <div className="challenge-card">
+            <div className="participants-count">
+                {participants.length} משתתפים
+            </div>
             <div className="challenge-header">
                 <img 
                     src={creatorProfilePicture}
@@ -145,10 +148,6 @@ const ChallengeCard: React.FC<Props> = ({ challenge, isCreator = false }) => {
                     {showParticipants ? 'הסתר משתתפים' : 'הצג משתתפים'}
                 </button>
                 
-                <div className="participants-count">
-                    {participants.length} משתתפים
-                </div>
-
                 {showParticipants && (
                     <ParticipantList 
                         challengeId={challenge.challengeId!}

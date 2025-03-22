@@ -41,6 +41,7 @@
     border-radius: 8px;
     padding: 20px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
 }
 
 .completed-challenge-card:hover {
@@ -67,6 +68,23 @@
 .challenge-level {
     margin: 10px 0;
     color: #666;
+    padding: 8px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.challenge-participants {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: #e3f2fd;
+    color: #1976d2;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.9em;
+    font-weight: 500;
+    display: inline-block;
 }
 
 .challenge-progress {

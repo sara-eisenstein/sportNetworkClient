@@ -1,9 +1,9 @@
 .challenge-card {
-    background-color: white;
+    background: white;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     padding: 20px;
-    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
 }
 
 .challenge-header {
@@ -230,17 +230,13 @@
 }
 
 .participants-count {
-    text-align: center;
-    font-size: 1em;
-    color: #007bff;
-    margin: 12px 0;
-    padding: 8px;
+    position: absolute;
+    top: 10px;
+    left: 10px;
     background-color: #e3f2fd;
-    border-radius: 20px;
-    font-weight: bold;
-    display: inline-block;
-    min-width: 100px;
-    position: relative;
-    left: 50%;
-    transform: translateX(-50%);
+    color: #1976d2;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.9em;
+    font-weight: 500;
 } 

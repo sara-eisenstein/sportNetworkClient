@@ -95,6 +95,9 @@ const CompletedChallenges: React.FC = () => {
             <div className="challenges-grid">
                 {completedChallenges.map(challenge => (
                     <div key={challenge.challengeId} className="completed-challenge-card">
+                        <div className="challenge-participants">
+                            {challenge.participantsCount || 0} משתתפים
+                        </div>
                         <h3>{challenge.title}</h3>
                         <p>{challenge.description}</p>
                         <div className="challenge-dates">
