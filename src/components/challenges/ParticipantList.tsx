@@ -7,11 +7,9 @@ import './ParticipantList.css';
 
 interface Props {
     challengeId: number;
-    goal: number;
-    unit: string;
 }
 
-const ParticipantList: React.FC<Props> = ({ challengeId, goal, unit }) => {
+const ParticipantList: React.FC<Props> = ({ challengeId }) => {
     const dispatch = useDispatch<AppDispatch>();
     const { participants, loading, error } = useSelector((state: RootState) => state.challengeParticipants);
 
@@ -29,10 +27,8 @@ const ParticipantList: React.FC<Props> = ({ challengeId, goal, unit }) => {
             <div className="participants-list">
                 {participants.map(participant => (
                     <ParticipantCard 
-                        key={participant.participantId} 
+                        key={participant.userId} 
                         participant={participant}
-                        goal={goal}
-                        unit={unit}
                     />
                 ))}
                 

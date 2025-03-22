@@ -1,13 +1,12 @@
 import { ChallengeStatus } from './challenge';
 
 export interface ChallengeParticipant {
-    participantId?: number;
-    challengeId: number;
     userId: number;
-    userName?: string;
-    userProfilePicture?: string;
-    joinDate: Date;
-    currentProgress: number;
-    status: ChallengeStatus;
-    lastUpdateDate: Date;
+    firstName: string;
+    lastName: string;
+    goals: string;
+    bio: string;
+    dateJoined: string;
+    profilePicture: string;
+    file: any;
 } 

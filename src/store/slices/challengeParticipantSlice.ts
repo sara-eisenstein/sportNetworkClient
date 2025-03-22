@@ -115,22 +115,21 @@ const challengeParticipantSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload as string;
             })
-            // Update Progress
+            // Update selected participant
             .addCase(updateProgress.fulfilled, (state, action: PayloadAction<ChallengeParticipant>) => {
                 const index = state.participants.findIndex(
-                    p => p.challengeId === action.payload.challengeId && p.userId === action.payload.userId
+                    p => p.userId === action.payload.userId
                 );
                 if (index !== -1) {
                     state.participants[index] = action.payload;
                 }
                 const userIndex = state.userParticipations.findIndex(
-                    p => p.challengeId === action.payload.challengeId && p.userId === action.payload.userId
+                    p => p.userId === action.payload.userId
                 );
                 if (userIndex !== -1) {
                     state.userParticipations[userIndex] = action.payload;
                 }
-                if (state.selectedParticipant?.challengeId === action.payload.challengeId &&
-                    state.selectedParticipant?.userId === action.payload.userId) {
+                if (state.selectedParticipant?.userId === action.payload.userId) {
                     state.selectedParticipant = action.payload;
                 }
                 state.error = null;

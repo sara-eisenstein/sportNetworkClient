@@ -166,8 +166,6 @@ const ChallengeCard: React.FC<Props> = ({ challenge, isCreator = false }) => {
                 {showParticipants && (
                     <ParticipantList 
                         challengeId={challenge.challengeId!}
-                        goal={challenge.goal}
-                        unit={challenge.unit}
                     />
                 )}
             </div>
