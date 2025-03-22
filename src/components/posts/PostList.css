@@ -1,5 +1,5 @@
 .posts-container {
-    max-width: 600px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
 }
@@ -17,9 +17,10 @@
 }
 
 .posts-list {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    padding: 10px;
 }
 
 .no-posts {
@@ -29,4 +30,15 @@
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     color: #666;
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 768px) {
+    .posts-list {
+        grid-template-columns: 1fr;
+    }
+    
+    .posts-container {
+        padding: 10px;
+    }
 } 
