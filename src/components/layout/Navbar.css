@@ -27,7 +27,7 @@
     font-weight: bold;
     display: flex;
     align-items: center;
-    order: 2;
+    order: 1;
 }
 
 .logo-text {
@@ -42,7 +42,24 @@
     margin: 0;
     padding: 0;
     gap: 8px;
-    order: 1;
+    order: 2;
+    flex: 1;
+    justify-content: flex-start;
+    margin-right: 32px;
+}
+
+.nav-menu .nav-item:has(.profile-link),
+.nav-menu .nav-item:has(.logout-button) {
+    margin-right: auto;
+}
+
+/* Remove gap between profile and logout */
+.nav-menu .nav-item:has(.profile-link) {
+    margin-left: 0;
+}
+
+.nav-menu .nav-item:has(.logout-button) {
+    margin-right: 0;
 }
 
 .nav-item {

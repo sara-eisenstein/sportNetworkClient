@@ -46,24 +46,44 @@ const Navbar: React.FC = () => {
     return (
         <nav className="navbar">
             <div className="navbar-container">
+                <Link to="/" className="navbar-logo">
+                    <span className="logo-text">FitSocial</span>
+                </Link>
+                
                 <ul className={`nav-menu ${menuOpen ? 'active' : ''}`}>
+                    <li className="nav-item">
+                        <Link 
+                            to="/" 
+                            className={`nav-link ${isActive('/') ? 'active' : ''}`}
+                            onClick={() => setMenuOpen(false)}
+                        >
+                            דף הבית
+                        </Link>
+                    </li>
+                    <li className="nav-item">
+                        <Link 
+                            to="/profiles" 
+                            className={`nav-link ${isActive('/profiles') ? 'active' : ''}`}
+                            onClick={() => setMenuOpen(false)}
+                        >
+                            משתמשים
+                        </Link>
+                    </li>
+                    <li className="nav-item">
+                        <Link 
+                            to="/challenges" 
+                            className={`nav-link ${isActive('/challenges') ? 'active' : ''}`}
+                            onClick={() => setMenuOpen(false)}
+                        >
+                            אתגרים
+                        </Link>
+                    </li>
                     {currentUser ? (
                         <>
                             <li className="nav-item">
-                                <button 
-                                    className="nav-link logout-button" 
-                                    onClick={() => {
-                                        handleLogout();
-                                        setMenuOpen(false);
-                                    }}
-                                >
-                                    התנתק
-                                </button>
-                            </li>
-                            <li className="nav-item">
                                 <Link 
                                     to="/profile" 
-                                    className={`nav-link ${isActive('/profile') ? 'active' : ''}`}
+                                    className={`nav-link profile-link ${isActive('/profile') ? 'active' : ''}`}
                                     onClick={() => setMenuOpen(false)}
                                 >
                                     <img 
@@ -81,44 +101,19 @@ const Navbar: React.FC = () => {
                                 </Link>
                             </li>
                             <li className="nav-item">
-                                <Link 
-                                    to="/" 
-                                    className={`nav-link ${isActive('/') ? 'active' : ''}`}
-                                    onClick={() => setMenuOpen(false)}
+                                <button 
+                                    className="nav-link logout-button" 
+                                    onClick={() => {
+                                        handleLogout();
+                                        setMenuOpen(false);
+                                    }}
                                 >
-                                    דף הבית
-                                </Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link 
-                                    to="/profiles" 
-                                    className={`nav-link ${isActive('/profiles') ? 'active' : ''}`}
-                                    onClick={() => setMenuOpen(false)}
-                                >
-                                    משתמשים
-                                </Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link 
-                                    to="/challenges" 
-                                    className={`nav-link ${isActive('/challenges') ? 'active' : ''}`}
-                                    onClick={() => setMenuOpen(false)}
-                                >
-                                    אתגרים
-                                </Link>
+                                    התנתק
+                                </button>
                             </li>
                         </>
                     ) : (
                         <>
-                            <li className="nav-item">
-                                <Link 
-                                    to="/register" 
-                                    className="nav-link register-link"
-                                    onClick={() => setMenuOpen(false)}
-                                >
-                                    הרשמה
-                                </Link>
-                            </li>
                             <li className="nav-item">
                                 <Link 
                                     to="/login" 
@@ -130,20 +125,16 @@ const Navbar: React.FC = () => {
                             </li>
                             <li className="nav-item">
                                 <Link 
-                                    to="/" 
-                                    className={`nav-link ${isActive('/') ? 'active' : ''}`}
+                                    to="/register" 
+                                    className="nav-link register-link"
                                     onClick={() => setMenuOpen(false)}
                                 >
-                                    דף הבית
+                                    הרשמה
                                 </Link>
                             </li>
                         </>
                     )}
                 </ul>
-
-                <Link to="/" className="navbar-logo">
-                    <span className="logo-text">FitSocial</span>
-                </Link>
 
                 <div className="menu-icon" onClick={toggleMenu}>
                     <div className={`menu-bars ${menuOpen ? 'open' : ''}`}>

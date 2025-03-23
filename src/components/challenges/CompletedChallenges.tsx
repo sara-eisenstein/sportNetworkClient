@@ -31,11 +31,11 @@ const CompletedChallenges: React.FC = () => {
         loadChallenges();
     }, [loadChallenges]);
 
-    // Filter completed challenges (past end date)
+    // Filter completed challenges (past end date and has status)
     const completedChallenges = challenges.filter(challenge => {
         const endDate = new Date(challenge.endDate);
         const now = new Date();
-        return endDate < now;
+        return endDate < now && (challenge.status === ChallengeStatus.Completed || challenge.status === ChallengeStatus.Failed);
     });
 
     const handleStatusUpdate = async (challengeId: number, newStatus: string, challenge: Challenge) => {

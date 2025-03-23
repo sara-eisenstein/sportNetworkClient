@@ -20,16 +20,35 @@ export const getAllChallenges = async (): Promise<Challenge[]> => {
  * מביא אתגרים של משתמש מסוים
  */
 export const getUserChallenges = async (userId: number): Promise<Challenge[]> => {
-    const response = await axios.get<Challenge[]>(
-        `${API_URL}/challengeToUser?userId=${userId}`,
-        {
-            headers: {
-                'accept': '*/*',
-                'Authorization': `Bearer ${localStorage.getItem("token")}`,
-            },
+    try {
+        console.log('Fetching challenges for user:', userId);
+        console.log('API URL:', `${API_URL}/challengeToUser?userId=${userId}`);
+        
+        const token = localStorage.getItem("token");
+        if (!token) {
+            throw new Error("No authentication token found");
         }
-    );
-    return response.data;
+
+        const response = await axios.get<Challenge[]>(
+            `${API_URL}/challengeToUser?userId=${userId}`,
+            {
+                headers: {
+                    'accept': '*/*',
+                    'Authorization': `Bearer ${token}`,
+                },
+            }
+        );
+        
+        console.log('Received challenges:', response.data);
+        return response.data;
+    } catch (error: any) {
+        console.error('Error in getUserChallenges:', error);
+        if (axios.isAxiosError(error)) {
+            console.error('Response data:', error.response?.data);
+            console.error('Response status:', error.response?.status);
+        }
+        throw new Error(`Failed to fetch user challenges: ${error.message}`);
+    }
 };
 
 /**
