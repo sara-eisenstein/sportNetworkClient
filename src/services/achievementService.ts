@@ -19,9 +19,15 @@ export const addAchievement = async (achievement: Achievement): Promise<string> 
     const formattedDate = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
     formData.append('DateEarned', formattedDate);
 
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
+
     const response = await axios.post(`${API_URL}/api/Achievement`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
+        'Authorization': `Bearer ${token}`,
       },
     });
     return response.data;
@@ -36,7 +42,16 @@ export const addAchievement = async (achievement: Achievement): Promise<string> 
  */
 export const updateAchievement = async (id: number, achievement: Achievement): Promise<string> => {
   try {
-    const response = await axios.put(`${API_URL}/api/Achievement/${id}`, achievement);
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
+
+    const response = await axios.put(`${API_URL}/api/Achievement/${id}`, achievement, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
     return response.data;
   } catch (error) {
     console.error("Error updating achievement:", error);
@@ -49,7 +64,16 @@ export const updateAchievement = async (id: number, achievement: Achievement): P
  */
 export const deleteAchievement = async (id: number): Promise<string> => {
   try {
-    const response = await axios.delete(`${API_URL}/api/Achievement/${id}`);
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
+
+    const response = await axios.delete(`${API_URL}/api/Achievement/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
     return response.data;
   } catch (error) {
     console.error("Error deleting achievement:", error);
@@ -62,7 +86,21 @@ export const deleteAchievement = async (id: number): Promise<string> => {
  */
 export const getAchievementsByUserId = async (userId: number): Promise<Achievement[]> => {
   try {
-    const response = await axios.get<Achievement[]>(`${API_URL}/api/Achievement/user/${userId}`);
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
+
+    console.log('Fetching achievements for user:', userId);
+    console.log('API URL:', `${API_URL}/api/Achievement/user/${userId}`);
+    
+    const response = await axios.get<Achievement[]>(`${API_URL}/api/Achievement/user/${userId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    
+    console.log('Received achievements:', response.data);
     return response.data;
   } catch (error) {
     console.error("Error fetching achievements:", error);

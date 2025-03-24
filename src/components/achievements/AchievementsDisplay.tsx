@@ -1,10 +1,19 @@
-import React from 'react';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../store/store';
+import React, { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from '../../store/store';
+import { fetchAchievements } from '../../store/slices/achievementsSlice';
 import './AchievementsDisplay.css';
 
 const AchievementsDisplay: React.FC = () => {
+    const dispatch = useDispatch<AppDispatch>();
     const { achievements, loading, error } = useSelector((state: RootState) => state.achievements);
+    const currentUser = useSelector((state: RootState) => state.auth.currentUser);
+
+    useEffect(() => {
+        if (currentUser?.userId) {
+            dispatch(fetchAchievements(currentUser.userId));
+        }
+    }, [dispatch, currentUser?.userId]);
 
     if (loading) {
         return <div className="achievements-loading">טוען הישגים...</div>;
