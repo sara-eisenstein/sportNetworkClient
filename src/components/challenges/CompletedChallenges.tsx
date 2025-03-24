@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../store/store';
 import { Challenge, ChallengeStatus } from '../../models/challenge';
@@ -11,14 +11,16 @@ const CompletedChallenges: React.FC = () => {
     const challenges = useSelector((state: RootState) => state.challenges.userChallenges);
     const currentUser = useSelector((state: RootState) => state.auth.currentUser);
     const [error, setError] = useState<string | null>(null);
+    const hasLoadedChallenges = useRef(false);
 
     useEffect(() => {
         const loadUserChallenges = async () => {
-            // טוען אתגרים רק אם אין לנו אתגרים טעונים
-            if (currentUser?.userId && challenges.length === 0) {
+            // טוען אתגרים רק אם אין לנו אתגרים טעונים וטרם טענו
+            if (currentUser?.userId && challenges.length === 0 && !hasLoadedChallenges.current) {
                 try {
                     console.log('Fetching user challenges for completed challenges view');
                     await dispatch(fetchUserChallenges(currentUser.userId)).unwrap();
+                    hasLoadedChallenges.current = true;
                 } catch (err) {
                     console.error('Error fetching user challenges:', err);
                     setError('שגיאה בטעינת האתגרים');
@@ -27,7 +29,7 @@ const CompletedChallenges: React.FC = () => {
         };
 
         loadUserChallenges();
-    }, [currentUser?.userId, dispatch, challenges.length]);
+    }, [currentUser?.userId, dispatch]); // הסרנו את challenges.length מה-dependencies
 
     // Filter completed challenges (past end date)
     const completedChallenges = challenges.filter(challenge => {

@@ -57,6 +57,7 @@ export const updateParticipantProgress = async (
     progress: string
 ): Promise<ChallengeParticipant> => {
     const formData = new FormData();
+    formData.append('ChallengeParticipantId', challengeId.toString());
     formData.append('ChallengeId', challengeId.toString());
     formData.append('UserId', userId.toString());
     formData.append('Progress', progress);
