@@ -93,10 +93,6 @@ const ChallengeList: React.FC<Props> = ({ userId, showCreateChallenge = false })
                         {activeFilter === 'my' ? 'הצג את כל האתגרים' : 'הצג את האתגרים שלי'}
                     </button>
                 )}
-            </div>
-
-            <div className="challenge-list-header">
-                {showCreateChallenge && <CreateChallenge />}
                 <button 
                     className="view-toggle-button"
                     onClick={() => setShowCompleted(true)}
@@ -105,7 +101,9 @@ const ChallengeList: React.FC<Props> = ({ userId, showCreateChallenge = false })
                 </button>
             </div>
 
-            {(filteredChallenges.length === 0 || (activeFilter === 'my' && userChallengesError)) ? (
+            {showCreateChallenge && <CreateChallenge />}
+
+            {filteredChallenges.length === 0 ? (
                 <div className="no-challenges">
                     {activeFilter === 'my'
                         ? 'אין לך אתגרים פעילים כרגע'
