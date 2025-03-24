@@ -11,9 +11,10 @@ import './ChallengeList.css';
 interface Props {
     userId?: number;
     showCreateChallenge?: boolean;
+    filteredChallengeIds?: number[];
 }
 
-const ChallengeList: React.FC<Props> = ({ userId, showCreateChallenge = false }) => {
+const ChallengeList: React.FC<Props> = ({ userId, showCreateChallenge = false, filteredChallengeIds }) => {
     const dispatch = useDispatch<AppDispatch>();
     const { challenges, userChallenges, loading, error } = useSelector((state: RootState) => state.challenges);
     const { userParticipations } = useSelector((state: RootState) => state.challengeParticipants);
@@ -50,17 +51,27 @@ const ChallengeList: React.FC<Props> = ({ userId, showCreateChallenge = false })
     const filteredChallenges = useMemo(() => {
         const baseChallenges = activeFilter === 'my' ? userChallenges : challenges;
         
-        if (!showOnlyActive) {
-            return baseChallenges;
+        let filtered = baseChallenges;
+
+        // Apply active/inactive filter
+        if (showOnlyActive) {
+            const now = new Date();
+            filtered = filtered.filter(challenge => {
+                const startDate = new Date(challenge.startDate);
+                const endDate = new Date(challenge.endDate);
+                return startDate <= now && endDate >= now;
+            });
         }
 
-        const now = new Date();
-        return baseChallenges.filter(challenge => {
-            const startDate = new Date(challenge.startDate);
-            const endDate = new Date(challenge.endDate);
-            return startDate <= now && endDate >= now;
-        });
-    }, [challenges, userChallenges, activeFilter, showOnlyActive]);
+        // Apply AI recommendations filter if provided
+        if (filteredChallengeIds && filteredChallengeIds.length > 0) {
+            filtered = filtered.filter(challenge => 
+                filteredChallengeIds.includes(challenge.challengeId!)
+            );
+        }
+
+        return filtered;
+    }, [challenges, userChallenges, activeFilter, showOnlyActive, filteredChallengeIds]);
 
     const challengesWithParticipation = useMemo(() => {
         return filteredChallenges.map(challenge => ({
