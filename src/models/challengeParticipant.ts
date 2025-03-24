@@ -10,4 +10,5 @@ export interface ChallengeParticipant {
     dateJoined: string;
     profilePicture: string;
     file: any;
+    progress: string; // "true" או "false" - האם המשתתף השלים את האתגר
 } 

@@ -62,7 +62,7 @@ export const fetchParticipationDetails = createAsyncThunk(
 export const updateProgress = createAsyncThunk(
     "challengeParticipants/updateProgress",
     async (
-        { challengeId, userId, progress }: { challengeId: number; userId: number; progress: number },
+        { challengeId, userId, progress }: { challengeId: number; userId: number; progress: string },
         thunkAPI
     ) => {
         try {

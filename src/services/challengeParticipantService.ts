@@ -54,13 +54,19 @@ export const getParticipationDetails = async (challengeId: number, userId: numbe
 export const updateParticipantProgress = async (
     challengeId: number,
     userId: number,
-    progress: number
+    progress: string
 ): Promise<ChallengeParticipant> => {
+    const formData = new FormData();
+    formData.append('ChallengeId', challengeId.toString());
+    formData.append('UserId', userId.toString());
+    formData.append('Progress', progress);
+
     const response = await axios.put<ChallengeParticipant>(
-        `${API_URL}/api/Challenge/${challengeId}/participants/${userId}/progress`,
-        { progress },
+        `${API_URL}/api/ChallengeParticipant/${challengeId}/progress`,
+        formData,
         {
             headers: {
+                'Content-Type': 'multipart/form-data',
                 Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
         }

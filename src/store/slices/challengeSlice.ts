@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import { Challenge } from "../../models/challenge";
+import { Challenge, ChallengeStatus } from "../../models/challenge";
 import {
     getAllChallenges,
     getUserChallenges,
@@ -7,9 +7,10 @@ import {
     updateChallenge,
     deleteChallenge,
     joinChallenge,
-    leaveChallenge,
-    updateProgress
+    leaveChallenge
 } from "../../services/challengeService";
+import { updateParticipantProgress } from "../../services/challengeParticipantService";
+import { ChallengeParticipant } from "../../models/challengeParticipant";
 
 interface ChallengeState {
     challenges: Challenge[];
@@ -115,9 +116,9 @@ export const quitChallenge = createAsyncThunk(
 
 export const updateChallengeProgress = createAsyncThunk(
     "challenges/updateProgress",
-    async ({ challengeId, progress }: { challengeId: number; progress: string }, thunkAPI) => {
+    async ({ challengeId, userId, progress }: { challengeId: number; userId: number; progress: string }, thunkAPI) => {
         try {
-            return await updateProgress(challengeId, progress);
+            return await updateParticipantProgress(challengeId, userId, progress);
         } catch (error) {
             return thunkAPI.rejectWithValue("Failed to update progress");
         }
@@ -219,16 +220,16 @@ const challengeSlice = createSlice({
                 state.error = action.payload as string;
             })
             // Update Progress
-            .addCase(updateChallengeProgress.fulfilled, (state, action: PayloadAction<Challenge>) => {
+            .addCase(updateChallengeProgress.fulfilled, (state, action: PayloadAction<ChallengeParticipant>) => {
                 const challenge = state.challenges.find(c => c.challengeId === action.payload.challengeId);
                 if (challenge) {
                     challenge.progress = action.payload.progress;
-                    challenge.status = action.payload.status;
+                    challenge.status = action.payload.progress === "true" ? ChallengeStatus.Completed : ChallengeStatus.Failed;
                 }
                 const userChallenge = state.userChallenges.find(c => c.challengeId === action.payload.challengeId);
                 if (userChallenge) {
                     userChallenge.progress = action.payload.progress;
-                    userChallenge.status = action.payload.status;
+                    userChallenge.status = action.payload.progress === "true" ? ChallengeStatus.Completed : ChallengeStatus.Failed;
                 }
                 state.error = null;
             })

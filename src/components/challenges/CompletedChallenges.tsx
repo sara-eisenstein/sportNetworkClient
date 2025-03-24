@@ -1,8 +1,8 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../store/store';
 import { Challenge, ChallengeStatus } from '../../models/challenge';
-import { updateChallengeProgress } from '../../store/slices/challengeSlice';
+import { updateChallengeProgress, fetchUserChallenges } from '../../store/slices/challengeSlice';
 import { addNewAchievement } from '../../store/slices/achievementsSlice';
 import './CompletedChallenges.css';
 
@@ -11,6 +11,23 @@ const CompletedChallenges: React.FC = () => {
     const challenges = useSelector((state: RootState) => state.challenges.userChallenges);
     const currentUser = useSelector((state: RootState) => state.auth.currentUser);
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const loadUserChallenges = async () => {
+            // טוען אתגרים רק אם אין לנו אתגרים טעונים
+            if (currentUser?.userId && challenges.length === 0) {
+                try {
+                    console.log('Fetching user challenges for completed challenges view');
+                    await dispatch(fetchUserChallenges(currentUser.userId)).unwrap();
+                } catch (err) {
+                    console.error('Error fetching user challenges:', err);
+                    setError('שגיאה בטעינת האתגרים');
+                }
+            }
+        };
+
+        loadUserChallenges();
+    }, [currentUser?.userId, dispatch, challenges.length]);
 
     // Filter completed challenges (past end date)
     const completedChallenges = challenges.filter(challenge => {
@@ -51,12 +68,17 @@ const CompletedChallenges: React.FC = () => {
     const handleStatusUpdate = async (challengeId: number, newStatus: string, challenge: Challenge) => {
         try {
             setError(null);
+            if (!currentUser?.userId) {
+                throw new Error('משתמש לא מחובר');
+            }
+            
             await dispatch(updateChallengeProgress({
                 challengeId,
+                userId: currentUser.userId,
                 progress: newStatus
             }));
 
-            if (newStatus === "true" && currentUser?.userId) {
+            if (newStatus === "true") {
                 await dispatch(addNewAchievement({
                     userId: currentUser.userId,
                     title: challenge.title,

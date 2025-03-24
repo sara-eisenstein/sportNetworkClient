@@ -15,6 +15,7 @@ interface Props {
 const ChallengeCard: React.FC<Props> = ({ challenge, isCreator = false }) => {
     const dispatch = useDispatch<AppDispatch>();
     const [showParticipants, setShowParticipants] = useState(false);
+    const currentUser = useSelector((state: RootState) => state.auth.currentUser);
     
     // קבלת המשתתפים הספציפיים לאתגר הזה
     const participants = useSelector((state: RootState) => 
@@ -43,8 +44,14 @@ const ChallengeCard: React.FC<Props> = ({ challenge, isCreator = false }) => {
     };
 
     const handleProgressUpdate = () => {
+        if (!currentUser?.userId) {
+            console.error('משתמש לא מחובר');
+            return;
+        }
+
         dispatch(updateChallengeProgress({
             challengeId: challenge.challengeId!,
+            userId: currentUser.userId,
             progress: challenge.progress === "true" ? "false" : "true"
         }));
     };

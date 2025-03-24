@@ -49,6 +49,10 @@ export const getUserChallenges = async (userId: number): Promise<Challenge[]> =>
         if (axios.isAxiosError(error)) {
             console.error('Response data:', error.response?.data);
             console.error('Response status:', error.response?.status);
+            if (error.response?.status === 404) {
+                console.log('No challenges found for user');
+                return [];
+            }
         }
         throw new Error(`Failed to fetch user challenges: ${error.message}`);
     }
