@@ -326,4 +326,34 @@
 
 .ai-button:not(:disabled) {
     animation: pulse 2s infinite;
+}
+
+.create-challenge-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    border: none;
+    border-radius: 15px;
+    background-color: #22c55e;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    min-width: 80px;
+    white-space: nowrap;
+    font-weight: 600;
+}
+
+.create-challenge-button:hover {
+    background-color: #16a34a;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+    .create-challenge-button {
+        flex: 1;
+        min-width: 70px;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+    }
 } 

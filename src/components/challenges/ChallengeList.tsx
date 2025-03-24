@@ -12,9 +12,11 @@ interface Props {
     userId?: number;
     showCreateChallenge?: boolean;
     filteredChallengeIds?: number[];
+    isCreateFormVisible?: boolean;
+    onCreateFormVisibilityChange?: (isVisible: boolean) => void;
 }
 
-const ChallengeList: React.FC<Props> = ({ userId, showCreateChallenge = false, filteredChallengeIds }) => {
+const ChallengeList: React.FC<Props> = ({ userId, showCreateChallenge = false, filteredChallengeIds, isCreateFormVisible = false, onCreateFormVisibilityChange }) => {
     const dispatch = useDispatch<AppDispatch>();
     const { challenges, userChallenges, loading, error } = useSelector((state: RootState) => state.challenges);
     const { userParticipations } = useSelector((state: RootState) => state.challengeParticipants);
@@ -128,9 +130,17 @@ const ChallengeList: React.FC<Props> = ({ userId, showCreateChallenge = false, f
                 >
                     הצג אתגרים שהסתיימו
                 </button>
+                {showCreateChallenge && (
+                    <button 
+                        className="create-challenge-button"
+                        onClick={() => onCreateFormVisibilityChange?.(!isCreateFormVisible)}
+                    >
+                        {isCreateFormVisible ? 'סגור טופס יצירה' : 'יצירת אתגר חדש'}
+                    </button>
+                )}
             </div>
 
-            {showCreateChallenge && <CreateChallenge />}
+            {showCreateChallenge && isCreateFormVisible && <CreateChallenge />}
 
             <div className="challenges-list">
                 {challengesWithParticipation.length === 0 ? (
