@@ -37,7 +37,9 @@ const ChallengeCard: React.FC<Props> = ({ challenge, isCreator = false }) => {
 
     const handleParticipation = () => {
         if (challenge.isParticipating) {
-            dispatch(quitChallenge(challenge.challengeId!));
+            if (window.confirm('האם אתה בטוח שברצונך לעזוב את האתגר?')) {
+                dispatch(quitChallenge(challenge.challengeId!));
+            }
         } else {
             dispatch(participateInChallenge(challenge.challengeId!));
         }
@@ -106,13 +108,21 @@ const ChallengeCard: React.FC<Props> = ({ challenge, isCreator = false }) => {
                 </div>
             </div>
 
-            {!isCreator && !challenge.isParticipating && (
+            {!isCreator && !challenge.isParticipating && isActive && (
                 <button 
                     className="participation-button"
                     onClick={handleParticipation}
-                    disabled={!isActive}
                 >
                     הצטרף לאתגר
+                </button>
+            )}
+
+            {!isCreator && challenge.isParticipating && (
+                <button 
+                    className="participation-button quit"
+                    onClick={handleParticipation}
+                >
+                    עזוב את האתגר
                 </button>
             )}
 

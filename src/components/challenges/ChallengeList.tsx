@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../store/store';
 import { fetchAllChallenges, fetchUserChallenges } from '../../store/slices/challengeSlice';
+import { fetchUserParticipations } from '../../store/slices/challengeParticipantSlice';
 import ChallengeCard from './ChallengeCard';
 import CreateChallenge from './CreateChallenge';
 import CompletedChallenges from './CompletedChallenges';
@@ -15,6 +16,7 @@ interface Props {
 const ChallengeList: React.FC<Props> = ({ userId, showCreateChallenge = false }) => {
     const dispatch = useDispatch<AppDispatch>();
     const { challenges, userChallenges, loading, error } = useSelector((state: RootState) => state.challenges);
+    const { userParticipations } = useSelector((state: RootState) => state.challengeParticipants);
     const { currentUser } = useSelector((state: RootState) => state.auth);
     const [activeFilter, setActiveFilter] = useState<'all' | 'my'>('all');
     const [showOnlyActive, setShowOnlyActive] = useState(true);
@@ -39,6 +41,12 @@ const ChallengeList: React.FC<Props> = ({ userId, showCreateChallenge = false })
         fetchChallenges();
     }, [dispatch, activeFilter, currentUser]);
 
+    useEffect(() => {
+        if (currentUser?.userId) {
+            dispatch(fetchUserParticipations(currentUser.userId));
+        }
+    }, [dispatch, currentUser?.userId]);
+
     const filteredChallenges = useMemo(() => {
         const baseChallenges = activeFilter === 'my' ? userChallenges : challenges;
         
@@ -53,6 +61,16 @@ const ChallengeList: React.FC<Props> = ({ userId, showCreateChallenge = false })
             return startDate <= now && endDate >= now;
         });
     }, [challenges, userChallenges, activeFilter, showOnlyActive]);
+
+    const challengesWithParticipation = useMemo(() => {
+        return filteredChallenges.map(challenge => ({
+            ...challenge,
+            isParticipating: userParticipations.some(participation => 
+                participation.challengeId === challenge.challengeId && 
+                participation.userId === currentUser?.userId
+            )
+        }));
+    }, [filteredChallenges, userParticipations, currentUser?.userId]);
 
     if (loading) {
         return <div className="challenges-loading">טוען אתגרים...</div>;
@@ -103,25 +121,25 @@ const ChallengeList: React.FC<Props> = ({ userId, showCreateChallenge = false })
 
             {showCreateChallenge && <CreateChallenge />}
 
-            {filteredChallenges.length === 0 ? (
-                <div className="no-challenges">
-                    {activeFilter === 'my'
-                        ? 'אין לך אתגרים פעילים כרגע'
-                        : showOnlyActive 
-                            ? 'אין אתגרים פעילים כרגע'
-                            : 'אין אתגרים כרגע'}
-                </div>
-            ) : (
-                <div className="challenges-list">
-                    {filteredChallenges.map(challenge => (
-                        <ChallengeCard
-                            key={challenge.challengeId}
+            <div className="challenges-list">
+                {challengesWithParticipation.length === 0 ? (
+                    <div className="no-challenges">
+                        {activeFilter === 'my'
+                            ? 'אין לך אתגרים פעילים כרגע'
+                            : showOnlyActive 
+                                ? 'אין אתגרים פעילים כרגע'
+                                : 'אין אתגרים כרגע'}
+                    </div>
+                ) : (
+                    challengesWithParticipation.map(challenge => (
+                        <ChallengeCard 
+                            key={challenge.challengeId} 
                             challenge={challenge}
-                            isCreator={currentUser?.userId === challenge.creatorId}
+                            isCreator={challenge.creatorId === currentUser?.userId}
                         />
-                    ))}
-                </div>
-            )}
+                    ))
+                )}
+            </div>
         </div>
     );
 };
