@@ -147,7 +147,7 @@ export const joinChallenge = async (challengeId: number): Promise<void> => {
     const userId = tokenPayload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
 
     formData.append('UserId', userId);
-    formData.append('Progress', '');
+    formData.append('Progress', '.');
 
     await axios.post(`${API_URL}/api/ChallengeParticipant`, formData, {
         headers: {
