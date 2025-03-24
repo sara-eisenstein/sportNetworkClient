@@ -56,14 +56,22 @@ export const updateParticipantProgress = async (
     userId: number,
     progress: string
 ): Promise<ChallengeParticipant> => {
+    // מביאים את כל ההשתתפויות של המשתמש
+    const participations = await getUserChallengeParticipations(userId);
+    const participation = participations.find(p => p.challengeId === challengeId);
+    
+    if (!participation) {
+        throw new Error('Participation not found');
+    }
+    
     const formData = new FormData();
-    formData.append('ChallengeParticipantId', challengeId.toString());
+    formData.append('ChallengeParticipantId', participation.challengeParticipantId.toString());
     formData.append('ChallengeId', challengeId.toString());
     formData.append('UserId', userId.toString());
     formData.append('Progress', progress);
 
     const response = await axios.put<ChallengeParticipant>(
-        `${API_URL}/api/ChallengeParticipant/${challengeId}/progress`,
+        `${API_URL}/api/ChallengeParticipant/${participation.challengeParticipantId}/progress`,
         formData,
         {
             headers: {

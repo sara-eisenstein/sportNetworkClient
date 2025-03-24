@@ -2,10 +2,11 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../store/store';
 import { Challenge, ChallengeStatus } from '../../models/challenge';
-import { updateChallengeProgress, fetchUserChallenges } from '../../store/slices/challengeSlice';
+import { fetchUserChallenges } from '../../store/slices/challengeSlice';
 import { addNewAchievement } from '../../store/slices/achievementsSlice';
 import { getUserChallengeParticipations } from '../../services/challengeParticipantService';
 import { ChallengeParticipant } from '../../models/challengeParticipant';
+import { updateProgress } from '../../store/slices/challengeParticipantSlice';
 import './CompletedChallenges.css';
 
 const CompletedChallenges: React.FC = () => {
@@ -68,25 +69,37 @@ const CompletedChallenges: React.FC = () => {
                 throw new Error('משתמש לא מחובר');
             }
             
-            await dispatch(updateChallengeProgress({
+            // עדכון ההשתתפות באתגר
+            const updatedParticipation = await dispatch(updateProgress({
                 challengeId,
                 userId: currentUser.userId,
                 progress: newStatus
             })).unwrap();
 
+            // הוספת הישג אם האתגר הושלם בהצלחה
             if (newStatus === "true") {
-                await dispatch(addNewAchievement({
-                    userId: currentUser.userId,
-                    title: challenge.title,
-                    description: challenge.description,
-                    dateEarned: new Date().toISOString()
-                })).unwrap();
+                try {
+                    await dispatch(addNewAchievement({
+                        userId: currentUser.userId,
+                        title: challenge.title,
+                        description: challenge.description,
+                        dateEarned: new Date().toISOString()
+                    })).unwrap();
+                } catch (achievementErr) {
+                    console.error("שגיאה בהוספת הישג:", achievementErr);
+                    // לא נזרוק שגיאה כאן כדי לא לעצור את התהליך
+                }
             }
 
-            // רענון האתגרים וההשתתפויות אחרי העדכון
-            await dispatch(fetchUserChallenges(currentUser.userId)).unwrap();
-            const updatedParticipations = await getUserChallengeParticipations(currentUser.userId);
-            setParticipations(updatedParticipations);
+            // רענון ההשתתפויות והאתגרים
+            try {
+                const updatedParticipations = await getUserChallengeParticipations(currentUser.userId);
+                setParticipations(updatedParticipations);
+                await dispatch(fetchUserChallenges(currentUser.userId)).unwrap();
+            } catch (refreshErr) {
+                console.error("שגיאה ברענון הנתונים:", refreshErr);
+                setError('שגיאה ברענון הנתונים');
+            }
         } catch (err) {
             console.error("שגיאה בעדכון סטטוס האתגר:", err);
             setError('שגיאה בעדכון סטטוס האתגר');
