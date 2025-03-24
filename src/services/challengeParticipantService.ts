@@ -74,3 +74,18 @@ export const updateParticipantProgress = async (
     );
     return response.data;
 };
+
+/**
+ * מביא את כל ההשתתפויות של משתמש באתגרים
+ */
+export const getUserChallengeParticipations = async (userId: number): Promise<ChallengeParticipant[]> => {
+    const response = await axios.get<ChallengeParticipant[]>(
+        `${API_URL}/api/ChallengeParticipant/user/${userId}`,
+        {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+        }
+    );
+    return response.data;
+};

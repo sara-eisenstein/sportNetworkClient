@@ -4,6 +4,8 @@ import { AppDispatch, RootState } from '../../store/store';
 import { Challenge, ChallengeStatus } from '../../models/challenge';
 import { updateChallengeProgress, fetchUserChallenges } from '../../store/slices/challengeSlice';
 import { addNewAchievement } from '../../store/slices/achievementsSlice';
+import { getUserChallengeParticipations } from '../../services/challengeParticipantService';
+import { ChallengeParticipant } from '../../models/challengeParticipant';
 import './CompletedChallenges.css';
 
 const CompletedChallenges: React.FC = () => {
@@ -12,10 +14,10 @@ const CompletedChallenges: React.FC = () => {
     const currentUser = useSelector((state: RootState) => state.auth.currentUser);
     const [error, setError] = useState<string | null>(null);
     const hasLoadedChallenges = useRef(false);
+    const [participations, setParticipations] = useState<ChallengeParticipant[]>([]);
 
     useEffect(() => {
         const loadUserChallenges = async () => {
-            // טוען אתגרים רק אם אין לנו אתגרים טעונים וטרם טענו
             if (currentUser?.userId && challenges.length === 0 && !hasLoadedChallenges.current) {
                 try {
                     console.log('Fetching user challenges for completed challenges view');
@@ -28,44 +30,36 @@ const CompletedChallenges: React.FC = () => {
             }
         };
 
+        const loadParticipations = async () => {
+            if (currentUser?.userId) {
+                try {
+                    const userParticipations = await getUserChallengeParticipations(currentUser.userId);
+                    setParticipations(userParticipations);
+                } catch (err) {
+                    console.error('Error fetching user participations:', err);
+                    setError('שגיאה בטעינת ההשתתפויות באתגרים');
+                }
+            }
+        };
+
         loadUserChallenges();
-    }, [currentUser?.userId, dispatch]); // הסרנו את challenges.length מה-dependencies
+        loadParticipations();
+    }, [currentUser?.userId, dispatch]);
 
     // Filter completed challenges (past end date)
     const completedChallenges = challenges.filter(challenge => {
-        console.log('Checking challenge:', {
-            id: challenge.challengeId,
-            title: challenge.title,
-            endDate: challenge.endDate,
-            currentDate: new Date().toISOString()
-        });
-        
-        // Convert endDate to start of day in local timezone
         const endDate = new Date(challenge.endDate);
         endDate.setHours(0, 0, 0, 0);
         
-        // Get current date at start of day in local timezone
         const now = new Date();
         now.setHours(0, 0, 0, 0);
         
-        // Check if challenge end date has passed
-        const isCompleted = endDate < now;
-        
-        console.log('Challenge completion status:', {
-            challengeId: challenge.challengeId,
-            isCompleted,
-            endDate: endDate.toISOString(),
-            now: now.toISOString()
-        });
-        
-        return isCompleted;
+        return endDate < now;
     });
 
-    console.log('Filtered challenges:', {
-        totalChallenges: challenges.length,
-        completedChallenges: completedChallenges.length,
-        completedChallengesList: completedChallenges
-    });
+    const getParticipationForChallenge = (challengeId: number): ChallengeParticipant | undefined => {
+        return participations.find(p => p.challengeId === challengeId);
+    };
 
     const handleStatusUpdate = async (challengeId: number, newStatus: string, challenge: Challenge) => {
         try {
@@ -89,8 +83,10 @@ const CompletedChallenges: React.FC = () => {
                 })).unwrap();
             }
 
-            // רענון האתגרים אחרי העדכון
+            // רענון האתגרים וההשתתפויות אחרי העדכון
             await dispatch(fetchUserChallenges(currentUser.userId)).unwrap();
+            const updatedParticipations = await getUserChallengeParticipations(currentUser.userId);
+            setParticipations(updatedParticipations);
         } catch (err) {
             console.error("שגיאה בעדכון סטטוס האתגר:", err);
             setError('שגיאה בעדכון סטטוס האתגר');
@@ -125,51 +121,53 @@ const CompletedChallenges: React.FC = () => {
         <div className="completed-challenges-container">
             <h2>אתגרים שהסתיימו</h2>
             <div className="challenges-grid">
-                {completedChallenges.map(challenge => (
-                    <div key={challenge.challengeId} className="completed-challenge-card">
-                        <div className="challenge-participants">
-                            {challenge.participantsCount || 0} משתתפים
-                        </div>
-                        <h3>{challenge.title}</h3>
-                        <p>{challenge.description}</p>
-                        <div className="challenge-dates">
-                            <span>התחלה: {new Date(challenge.startDate).toLocaleDateString('he-IL')}</span>
-                            <span>סיום: {new Date(challenge.endDate).toLocaleDateString('he-IL')}</span>
-                        </div>
-                        <div className="challenge-level">
-                            <span>רמת קושי: {challenge.level}</span>
-                        </div>
-                        <div className="challenge-progress">
-                            <span>סטטוס: {challenge.progress === "true" ? 'הושלם' : 'טרם הושלם'}</span>
-                        </div>
-                        {(!challenge.status || (challenge.status !== ChallengeStatus.Completed && challenge.status !== ChallengeStatus.Failed)) && (
-                            <div className="status-buttons">
-                                <button 
-                                    className="success-button"
-                                    onClick={() => handleStatusUpdate(challenge.challengeId!, "true", challenge)}
-                                >
-                                    ✓ עמדתי באתגר
-                                </button>
-                                <button 
-                                    className="failure-button"
-                                    onClick={() => handleStatusUpdate(challenge.challengeId!, "false", challenge)}
-                                >
-                                    ✗ לא עמדתי באתגר
-                                </button>
+                {completedChallenges.map(challenge => {
+                    const participation = getParticipationForChallenge(challenge.challengeId!);
+                    const progress = participation?.progress;
+
+                    return (
+                        <div key={challenge.challengeId} className="completed-challenge-card">
+                            <div className="challenge-participants">
+                                {challenge.participantsCount || 0} משתתפים
                             </div>
-                        )}
-                        {challenge.status === ChallengeStatus.Completed && (
-                            <div className="status-indicator success">
-                                ✓ הושלם בהצלחה
+                            <h3>{challenge.title}</h3>
+                            <p>{challenge.description}</p>
+                            <div className="challenge-dates">
+                                <span>התחלה: {new Date(challenge.startDate).toLocaleDateString('he-IL')}</span>
+                                <span>סיום: {new Date(challenge.endDate).toLocaleDateString('he-IL')}</span>
                             </div>
-                        )}
-                        {challenge.status === ChallengeStatus.Failed && (
-                            <div className="status-indicator failure">
-                                ✗ לא הושלם
+                            <div className="challenge-level">
+                                <span>רמת קושי: {challenge.level}</span>
                             </div>
-                        )}
-                    </div>
-                ))}
+                            {!progress && (
+                                <div className="status-buttons">
+                                    <button 
+                                        className="success-button"
+                                        onClick={() => handleStatusUpdate(challenge.challengeId!, "true", challenge)}
+                                    >
+                                        ✓ עמדתי באתגר
+                                    </button>
+                                    <button 
+                                        className="failure-button"
+                                        onClick={() => handleStatusUpdate(challenge.challengeId!, "false", challenge)}
+                                    >
+                                        ✗ לא עמדתי באתגר
+                                    </button>
+                                </div>
+                            )}
+                            {progress === "true" && (
+                                <div className="status-indicator success">
+                                    ✓ הושלם בהצלחה
+                                </div>
+                            )}
+                            {progress === "false" && (
+                                <div className="status-indicator failure">
+                                    ✗ לא הושלם
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );
