@@ -106,14 +106,6 @@ const ChallengeCard: React.FC<Props> = ({ challenge, isCreator = false }) => {
                 </div>
             </div>
 
-            {challenge.isParticipating && isActive && (
-                <div className="update-progress">
-                    <button onClick={handleProgressUpdate}>
-                        {challenge.progress === "true" ? 'בטל השלמה' : 'סמן כהושלם'}
-                    </button>
-                </div>
-            )}
-
             {!isCreator && !challenge.isParticipating && (
                 <button 
                     className="participation-button"
