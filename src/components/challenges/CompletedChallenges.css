@@ -1,32 +1,13 @@
 .completed-challenges-container {
     padding: 20px;
-    text-align: center;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .completed-challenges-container h2 {
     color: #333;
     margin-bottom: 20px;
-}
-
-.empty-state {
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    padding: 30px;
-    margin: 20px auto;
-    max-width: 500px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.empty-state p {
-    margin: 0;
-    color: #333;
-    font-size: 1.1em;
-}
-
-.empty-state .sub-text {
-    color: #666;
-    font-size: 0.9em;
-    margin-top: 10px;
+    text-align: center;
 }
 
 .challenges-grid {
@@ -34,6 +15,82 @@
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 20px;
     padding: 20px;
+}
+
+.challenge-card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+}
+
+.challenge-card:hover {
+    transform: translateY(-5px);
+}
+
+.challenge-card h3 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.challenge-card p {
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.challenge-dates {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.challenge-status {
+    text-align: center;
+    padding: 8px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.empty-state p {
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.empty-state .sub-text {
+    font-size: 0.9em;
+    color: #999;
+}
+
+.error-state {
+    text-align: center;
+    color: #dc3545;
+    padding: 20px;
+}
+
+.retry-button {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.retry-button:hover {
+    background: #0056b3;
 }
 
 .completed-challenge-card {
@@ -56,13 +113,6 @@
 .completed-challenge-card p {
     color: #666;
     margin-bottom: 15px;
-}
-
-.challenge-dates {
-    display: flex;
-    justify-content: space-between;
-    margin: 10px 0;
-    color: #666;
 }
 
 .challenge-level {
@@ -133,34 +183,4 @@
 .status-indicator.failure {
     background-color: #f8d7da;
     color: #721c24;
-}
-
-.error-state {
-    background-color: #fff3f3;
-    border-radius: 8px;
-    padding: 30px;
-    margin: 20px auto;
-    max-width: 500px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    text-align: center;
-}
-
-.error-state p {
-    color: #dc3545;
-    margin-bottom: 15px;
-}
-
-.retry-button {
-    background-color: #6c757d;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    padding: 8px 16px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.2s;
-}
-
-.retry-button:hover {
-    background-color: #5a6268;
 } 

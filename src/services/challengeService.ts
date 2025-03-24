@@ -8,11 +8,14 @@ const API_URL = process.env.REACT_APP_API_URL;
  * מביא את כל האתגרים הפעילים
  */
 export const getAllChallenges = async (): Promise<Challenge[]> => {
-    const response = await axios.get<Challenge[]>(`${API_URL}/api/Challenge`, {
-        headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-    });
+    const response = await axios.get<Challenge[]>(
+        `${API_URL}/api/Challenge`,
+        {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+        }
+    );
     return response.data;
 };
 

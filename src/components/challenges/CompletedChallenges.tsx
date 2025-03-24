@@ -1,8 +1,8 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../store/store';
 import { Challenge, ChallengeStatus } from '../../models/challenge';
-import { fetchUserChallenges, updateChallengeProgress } from '../../store/slices/challengeSlice';
+import { updateChallengeProgress } from '../../store/slices/challengeSlice';
 import { addNewAchievement } from '../../store/slices/achievementsSlice';
 import './CompletedChallenges.css';
 
@@ -10,32 +10,42 @@ const CompletedChallenges: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
     const challenges = useSelector((state: RootState) => state.challenges.userChallenges);
     const currentUser = useSelector((state: RootState) => state.auth.currentUser);
-    const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const loadChallenges = useCallback(async () => {
-        if (!currentUser?.userId) return;
-        try {
-            setLoading(true);
-            setError(null);
-            await dispatch(fetchUserChallenges(currentUser.userId));
-        } catch (err) {
-            setError('שגיאה בטעינת האתגרים');
-            console.error('Error loading challenges:', err);
-        } finally {
-            setLoading(false);
-        }
-    }, [dispatch, currentUser?.userId]);
-
-    useEffect(() => {
-        loadChallenges();
-    }, [loadChallenges]);
-
-    // Filter completed challenges (past end date and has status)
+    // Filter completed challenges (past end date)
     const completedChallenges = challenges.filter(challenge => {
+        console.log('Checking challenge:', {
+            id: challenge.challengeId,
+            title: challenge.title,
+            endDate: challenge.endDate,
+            currentDate: new Date().toISOString()
+        });
+        
+        // Convert endDate to start of day in local timezone
         const endDate = new Date(challenge.endDate);
+        endDate.setHours(0, 0, 0, 0);
+        
+        // Get current date at start of day in local timezone
         const now = new Date();
-        return endDate < now && (challenge.status === ChallengeStatus.Completed || challenge.status === ChallengeStatus.Failed);
+        now.setHours(0, 0, 0, 0);
+        
+        // Check if challenge end date has passed
+        const isCompleted = endDate < now;
+        
+        console.log('Challenge completion status:', {
+            challengeId: challenge.challengeId,
+            isCompleted,
+            endDate: endDate.toISOString(),
+            now: now.toISOString()
+        });
+        
+        return isCompleted;
+    });
+
+    console.log('Filtered challenges:', {
+        totalChallenges: challenges.length,
+        completedChallenges: completedChallenges.length,
+        completedChallengesList: completedChallenges
     });
 
     const handleStatusUpdate = async (challengeId: number, newStatus: string, challenge: Challenge) => {
@@ -55,20 +65,15 @@ const CompletedChallenges: React.FC = () => {
                 }));
             }
         } catch (err) {
+            console.error("שגיאה בעדכון סטטוס האתגר:", err);
             setError('שגיאה בעדכון סטטוס האתגר');
-            console.error("Error updating challenge status:", err);
         }
     };
-
-    if (loading) {
-        return <div className="completed-challenges-container">טוען...</div>;
-    }
 
     if (error) {
         return (
             <div className="completed-challenges-container error-state">
                 <p>{error}</p>
-                <button onClick={loadChallenges} className="retry-button">נסה שוב</button>
             </div>
         );
     }
@@ -82,8 +87,8 @@ const CompletedChallenges: React.FC = () => {
             <div className="completed-challenges-container">
                 <h2>אתגרים שהסתיימו</h2>
                 <div className="empty-state">
-                    <p>אין עדיין אתגרים שהסתיימו</p>
-                    <p className="sub-text">האתגרים יופיעו כאן לאחר שיגיע תאריך הסיום שלהם</p>
+                    <p>אין לך אתגרים שהסתיימו</p>
+                    <p className="sub-text">האתגרים שלך יופיעו כאן לאחר שיגיע תאריך הסיום שלהם</p>
                 </div>
             </div>
         );
@@ -143,4 +148,4 @@ const CompletedChallenges: React.FC = () => {
     );
 };
 
-export default CompletedChallenges; 
+export default CompletedChallenges;
