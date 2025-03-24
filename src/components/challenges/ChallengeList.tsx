@@ -45,13 +45,24 @@ const ChallengeList: React.FC<Props> = ({ userId, showCreateChallenge = false, f
     }, [dispatch, activeFilter, currentUser]);
 
     useEffect(() => {
-        if (currentUser?.userId) {
-            dispatch(fetchUserParticipations(currentUser.userId));
-        }
-    }, [dispatch, currentUser?.userId]);
+        const loadParticipations = async () => {
+            if (currentUser?.userId) {
+                try {
+                    console.log('Loading participations for user:', currentUser.userId);
+                    const result = await dispatch(fetchUserParticipations(currentUser.userId));
+                    console.log('Participations loaded:', result);
+                } catch (error) {
+                    console.error('Error loading participations:', error);
+                }
+            }
+        };
+        
+        loadParticipations();
+    }, [dispatch, currentUser?.userId, challenges, userChallenges]);
 
     const filteredChallenges = useMemo(() => {
         const baseChallenges = activeFilter === 'my' ? userChallenges : challenges;
+        console.log('Base challenges:', baseChallenges);
         
         let filtered = baseChallenges;
 
@@ -61,28 +72,51 @@ const ChallengeList: React.FC<Props> = ({ userId, showCreateChallenge = false, f
             filtered = filtered.filter(challenge => {
                 const startDate = new Date(challenge.startDate);
                 const endDate = new Date(challenge.endDate);
-                return startDate <= now && endDate >= now;
+                const isActive = startDate <= now && endDate >= now;
+                console.log(`Challenge ${challenge.challengeId} (${challenge.title}):`, 
+                    { startDate, endDate, now, isActive });
+                return isActive;
             });
         }
 
         // Apply AI recommendations filter if provided
         if (filteredChallengeIds && filteredChallengeIds.length > 0) {
-            filtered = filtered.filter(challenge => 
-                filteredChallengeIds.includes(challenge.challengeId!)
-            );
+            console.log('Filtering by recommended IDs:', filteredChallengeIds);
+            filtered = filtered.filter(challenge => {
+                const isRecommended = filteredChallengeIds.includes(challenge.challengeId!);
+                console.log(`Challenge ${challenge.challengeId} recommended:`, isRecommended);
+                return isRecommended;
+            });
         }
 
+        console.log('Final filtered challenges:', filtered);
         return filtered;
     }, [challenges, userChallenges, activeFilter, showOnlyActive, filteredChallengeIds]);
 
     const challengesWithParticipation = useMemo(() => {
-        return filteredChallenges.map(challenge => ({
-            ...challenge,
-            isParticipating: userParticipations.some(participation => 
-                participation.challengeId === challenge.challengeId && 
-                participation.userId === currentUser?.userId
-            )
-        }));
+        console.log('Calculating participations with:', {
+            currentUser,
+            userParticipations,
+            filteredChallenges
+        });
+
+        if (!currentUser?.userId || !userParticipations.length) {
+            return filteredChallenges.map(challenge => ({
+                ...challenge,
+                isParticipating: false
+            }));
+        }
+
+        return filteredChallenges.map(challenge => {
+            const isParticipating = userParticipations.some(participation => 
+                participation.challengeId === challenge.challengeId
+            );
+            console.log(`Challenge ${challenge.challengeId}: isParticipating = ${isParticipating}`);
+            return {
+                ...challenge,
+                isParticipating
+            };
+        });
     }, [filteredChallenges, userParticipations, currentUser?.userId]);
 
     if (loading) {

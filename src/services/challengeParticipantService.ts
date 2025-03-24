@@ -7,15 +7,29 @@ const API_URL = process.env.REACT_APP_API_URL;
  * מביא את כל המשתתפים באתגר מסוים
  */
 export const getChallengeParticipants = async (challengeId: number): Promise<ChallengeParticipant[]> => {
-    const response = await axios.get<ChallengeParticipant[]>(
-        `${API_URL}/api/Challenge/participants/${challengeId}`,
-        {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
+    try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            throw new Error("No token found");
         }
-    );
-    return response.data;
+
+        const response = await axios.get<ChallengeParticipant[]>(
+            `${API_URL}/api/Challenge/participants/${challengeId}`,
+            {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+        
+        console.log('Response from participants API:', response);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching challenge participants:', error);
+        throw error;
+    }
 };
 
 /**

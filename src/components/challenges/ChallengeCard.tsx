@@ -4,6 +4,7 @@ import { AppDispatch, RootState } from '../../store/store';
 import { removeChallenge, participateInChallenge, quitChallenge, updateChallengeProgress } from '../../store/slices/challengeSlice';
 import { Challenge, ChallengeStatus } from '../../models/challenge';
 import { fetchChallengeParticipants } from '../../store/slices/challengeParticipantSlice';
+import { fetchUserParticipations } from '../../store/slices/challengeParticipantSlice';
 import ParticipantList from './ParticipantList';
 import './ChallengeCard.css';
 
@@ -35,13 +36,27 @@ const ChallengeCard: React.FC<Props> = ({ challenge, isCreator = false }) => {
         }
     };
 
-    const handleParticipation = () => {
-        if (challenge.isParticipating) {
-            if (window.confirm('האם אתה בטוח שברצונך לעזוב את האתגר?')) {
-                dispatch(quitChallenge(challenge.challengeId!));
+    const handleParticipation = async () => {
+        if (!currentUser?.userId) return;
+
+        try {
+            if (challenge.isParticipating) {
+                if (window.confirm('האם אתה בטוח שברצונך לעזוב את האתגר?')) {
+                    await dispatch(quitChallenge(challenge.challengeId!));
+                    // עדכון רשימת ההשתתפויות
+                    await dispatch(fetchUserParticipations(currentUser.userId));
+                    // עדכון רשימת המשתתפים באתגר
+                    await dispatch(fetchChallengeParticipants(challenge.challengeId!));
+                }
+            } else {
+                await dispatch(participateInChallenge(challenge.challengeId!));
+                // עדכון רשימת ההשתתפויות
+                await dispatch(fetchUserParticipations(currentUser.userId));
+                // עדכון רשימת המשתתפים באתגר
+                await dispatch(fetchChallengeParticipants(challenge.challengeId!));
             }
-        } else {
-            dispatch(participateInChallenge(challenge.challengeId!));
+        } catch (error) {
+            console.error('Error handling participation:', error);
         }
     };
 

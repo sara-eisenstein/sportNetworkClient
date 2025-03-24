@@ -23,6 +23,12 @@
     width: 100%;
 }
 
+.side-content .challenges-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+
 .challenge-card {
     background: white;
     border-radius: 8px;

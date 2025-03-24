@@ -121,6 +121,12 @@
     background-color: #005b8c;
 }
 
+.side-content .challenges-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px;
+}
+
 /* Responsive styles */
 @media (max-width: 768px) {
     .home-content {
