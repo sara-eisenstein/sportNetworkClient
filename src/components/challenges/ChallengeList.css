@@ -17,18 +17,29 @@
 }
 
 .challenges-list {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     gap: 20px;
+    width: 100%;
+}
+
+.challenge-card {
+    background: white;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+    height: fit-content;
 }
 
 .no-challenges {
     text-align: center;
-    padding: 40px;
+    padding: 30px;
     background-color: white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     color: #666;
+    margin-top: 20px;
 }
 
 .challenges-toggle {
@@ -98,6 +109,11 @@
 }
 
 @media (max-width: 768px) {
+    .challenges-list {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
     .challenges-toggle, .challenge-list-header {
         flex-wrap: wrap;
         gap: 8px;

@@ -1,17 +1,27 @@
 .challenge-card {
     background: white;
-    border-radius: 8px;
+    border-radius: 12px;
     padding: 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
     position: relative;
+    height: fit-content;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.challenge-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .challenge-header {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-bottom: 16px;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    position: relative;
 }
 
 .creator-avatar {
@@ -42,52 +52,67 @@
 }
 
 .challenge-status {
-    font-size: 0.9em;
-    padding: 2px 8px;
+    font-size: 0.85em;
+    padding: 4px 8px;
     border-radius: 12px;
+    font-weight: 500;
 }
 
 .status-active {
-    background-color: #e3f2fd;
-    color: #1976d2;
+    background-color: #e0f2fe;
+    color: #0369a1;
 }
 
 .status-completed {
-    background-color: #e8f5e9;
-    color: #2e7d32;
+    background-color: #dcfce7;
+    color: #166534;
 }
 
 .status-failed {
-    background-color: #ffebee;
-    color: #c62828;
+    background-color: #fee2e2;
+    color: #991b1b;
 }
 
 .delete-button {
     padding: 4px 8px;
     background-color: transparent;
-    border: 1px solid #dc3545;
-    color: #dc3545;
-    border-radius: 4px;
+    border: 1px solid #ef4444;
+    color: #ef4444;
+    border-radius: 6px;
     cursor: pointer;
+    font-size: 0.85em;
+    transition: all 0.2s ease;
+}
+
+.delete-button:hover {
+    background-color: #fee2e2;
+    transform: translateY(-1px);
 }
 
 .challenge-title {
-    margin: 0 0 8px 0;
+    margin: 0;
     font-size: 1.2em;
-    padding-left: 100px;
+    color: #2c3e50;
+    font-weight: 600;
+    padding-left: 0;
+    width: 100%;
 }
 
 .challenge-description {
     margin: 0 0 16px 0;
-    color: #666;
+    color: #4a5568;
     line-height: 1.5;
+    font-size: 0.95em;
 }
 
 .challenge-details {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
+    background-color: #f8fafc;
+    padding: 12px;
+    border-radius: 8px;
 }
 
 .detail-item {
@@ -96,22 +121,29 @@
 }
 
 .detail-label {
-    font-size: 0.9em;
-    color: #666;
+    font-size: 0.8em;
+    color: #64748b;
     margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.detail-item span:not(.detail-label) {
+    color: #1e293b;
+    font-weight: 500;
 }
 
 .progress-section {
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 }
 
 .progress-status {
     text-align: center;
     padding: 8px;
-    border-radius: 4px;
-    font-weight: bold;
-    background-color: #f0f0f0;
-    color: #666;
+    border-radius: 8px;
+    font-weight: 500;
+    background-color: #f1f5f9;
+    color: #475569;
+    font-size: 0.9em;
 }
 
 .progress-bar {
@@ -140,17 +172,19 @@
 .update-progress button {
     width: 100%;
     padding: 8px;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
-    background-color: #4caf50;
+    background-color: #22c55e;
     color: white;
     border: none;
-    font-weight: bold;
-    transition: background-color 0.2s ease;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    font-size: 0.9em;
 }
 
 .update-progress button:hover {
-    background-color: #45a049;
+    background-color: #16a34a;
+    transform: translateY(-1px);
 }
 
 .progress-update-form {
@@ -191,55 +225,66 @@
 .participation-button {
     width: 100%;
     padding: 8px;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
     margin-bottom: 12px;
-    background-color: #1976d2;
+    background-color: #3b82f6;
     color: white;
     border: none;
-    font-weight: bold;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    font-size: 0.9em;
 }
 
-.participation-button.participating {
-    background-color: #dc3545;
+.participation-button:hover {
+    background-color: #2563eb;
+    transform: translateY(-1px);
 }
 
 .participation-button:disabled {
-    background-color: #ccc;
+    background-color: #94a3b8;
     cursor: not-allowed;
+    transform: none;
 }
 
 .participants-section {
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid #eee;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.participants-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
 }
 
 .view-participants-button {
-    width: 100%;
+    flex: 1;
     padding: 8px;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
-    margin-bottom: 12px;
-    background-color: #f0f0f0;
-    color: #333;
-    border: 1px solid #ddd;
-    font-weight: bold;
+    background-color: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+    font-weight: 500;
     transition: all 0.2s ease;
+    font-size: 0.9em;
 }
 
 .view-participants-button:hover {
-    background-color: #e0e0e0;
+    background-color: #e2e8f0;
+    transform: translateY(-1px);
 }
 
 .participants-count {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    background-color: #e3f2fd;
-    color: #1976d2;
+    background-color: #e0f2fe;
+    color: #0369a1;
     padding: 4px 8px;
     border-radius: 12px;
-    font-size: 0.9em;
+    font-size: 0.85em;
     font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0;
 } 

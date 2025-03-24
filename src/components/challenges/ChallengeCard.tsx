@@ -75,16 +75,10 @@ const ChallengeCard: React.FC<Props> = ({ challenge, isCreator = false }) => {
 
     return (
         <div className="challenge-card">
-            <div className="participants-count">
-                {participants.length} משתתפים
-            </div>
             <h3 className="challenge-title">{challenge.title}</h3>
             <p className="challenge-description">{challenge.description}</p>
             
             <div className="challenge-header">
-                <span className={`challenge-status ${getStatusColor()}`}>
-                    {challenge.status}
-                </span>
                 {isCreator && (
                     <button 
                         className="delete-button"
@@ -131,12 +125,17 @@ const ChallengeCard: React.FC<Props> = ({ challenge, isCreator = false }) => {
             )}
 
             <div className="participants-section">
-                <button 
-                    className="view-participants-button"
-                    onClick={() => setShowParticipants(!showParticipants)}
-                >
-                    {showParticipants ? 'הסתר משתתפים' : 'הצג משתתפים'}
-                </button>
+                <div className="participants-row">
+                    <div className="participants-count">
+                        {participants.length} משתתפים
+                    </div>
+                    <button 
+                        className="view-participants-button"
+                        onClick={() => setShowParticipants(!showParticipants)}
+                    >
+                        {showParticipants ? 'הסתר משתתפים' : 'הצג משתתפים'}
+                    </button>
+                </div>
                 
                 {showParticipants && (
                     <ParticipantList 
