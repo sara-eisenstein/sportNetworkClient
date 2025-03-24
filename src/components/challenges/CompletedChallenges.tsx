@@ -78,7 +78,7 @@ const CompletedChallenges: React.FC = () => {
                 challengeId,
                 userId: currentUser.userId,
                 progress: newStatus
-            }));
+            })).unwrap();
 
             if (newStatus === "true") {
                 await dispatch(addNewAchievement({
@@ -86,8 +86,11 @@ const CompletedChallenges: React.FC = () => {
                     title: challenge.title,
                     description: challenge.description,
                     dateEarned: new Date().toISOString()
-                }));
+                })).unwrap();
             }
+
+            // רענון האתגרים אחרי העדכון
+            await dispatch(fetchUserChallenges(currentUser.userId)).unwrap();
         } catch (err) {
             console.error("שגיאה בעדכון סטטוס האתגר:", err);
             setError('שגיאה בעדכון סטטוס האתגר');

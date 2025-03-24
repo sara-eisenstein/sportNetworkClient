@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import ChallengeList from '../components/challenges/ChallengeList';
+import AchievementsDisplay from '../components/achievements/AchievementsDisplay';
 import './ChallengesPage.css';
 
 const ChallengesPage: React.FC = () => {
     const { currentUser } = useSelector((state: RootState) => state.auth);
+    const [activeTab, setActiveTab] = useState<'challenges' | 'achievements'>('challenges');
 
     return (
         <div className="challenges-page">
@@ -18,8 +20,29 @@ const ChallengesPage: React.FC = () => {
                 </p>
             </header>
 
+            {currentUser && (
+                <div className="page-tabs">
+                    <button 
+                        className={`tab-button ${activeTab === 'challenges' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('challenges')}
+                    >
+                        אתגרים
+                    </button>
+                    <button 
+                        className={`tab-button ${activeTab === 'achievements' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('achievements')}
+                    >
+                        הישגים
+                    </button>
+                </div>
+            )}
+
             <main className="challenges-main">
-                <ChallengeList showCreateChallenge={true} />
+                {activeTab === 'challenges' ? (
+                    <ChallengeList showCreateChallenge={true} />
+                ) : (
+                    <AchievementsDisplay />
+                )}
             </main>
         </div>
     );

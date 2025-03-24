@@ -1,0 +1,128 @@
+.achievements-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.achievements-container h2 {
+    color: #333;
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 1.8em;
+}
+
+.achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    width: 100%;
+}
+
+.achievement-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.achievement-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.achievement-icon {
+    font-size: 2.5em;
+    margin-bottom: 15px;
+    background: linear-gradient(135deg, #ffd700, #ffa500);
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.achievement-content {
+    width: 100%;
+}
+
+.achievement-content h3 {
+    color: #2c3e50;
+    margin: 0 0 10px 0;
+    font-size: 1.2em;
+}
+
+.achievement-content p {
+    color: #666;
+    margin: 0 0 15px 0;
+    line-height: 1.5;
+}
+
+.achievement-date {
+    font-size: 0.9em;
+    color: #888;
+    padding: 8px;
+    background-color: #f8f9fa;
+    border-radius: 20px;
+    display: inline-block;
+}
+
+.achievements-loading {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+    font-size: 1.1em;
+}
+
+.achievements-error {
+    text-align: center;
+    padding: 40px;
+    color: #dc3545;
+    background-color: #fff5f5;
+    border-radius: 8px;
+    margin: 20px;
+}
+
+.achievements-empty {
+    text-align: center;
+    padding: 40px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin: 20px;
+}
+
+.achievements-empty h2 {
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.achievements-empty p {
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.achievements-empty .sub-text {
+    font-size: 0.9em;
+    color: #999;
+}
+
+@media (max-width: 768px) {
+    .achievements-grid {
+        grid-template-columns: 1fr;
+        padding: 10px;
+    }
+
+    .achievement-card {
+        margin: 0 10px;
+    }
+} 
