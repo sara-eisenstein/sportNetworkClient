@@ -7,12 +7,14 @@ import { addNewAchievement } from '../../store/slices/achievementsSlice';
 import { getUserChallengeParticipations } from '../../services/challengeParticipantService';
 import { ChallengeParticipant } from '../../models/challengeParticipant';
 import { updateProgress } from '../../store/slices/challengeParticipantSlice';
+import { fetchChallengeParticipants } from '../../store/slices/challengeParticipantSlice';
 import './CompletedChallenges.css';
 
 const CompletedChallenges: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
     const challenges = useSelector((state: RootState) => state.challenges.userChallenges);
     const currentUser = useSelector((state: RootState) => state.auth.currentUser);
+    const participantsByChallenge = useSelector((state: RootState) => state.challengeParticipants.participantsByChallenge);
     const [error, setError] = useState<string | null>(null);
     const hasLoadedChallenges = useRef(false);
     const [participations, setParticipations] = useState<ChallengeParticipant[]>([]);
@@ -46,6 +48,27 @@ const CompletedChallenges: React.FC = () => {
         loadUserChallenges();
         loadParticipations();
     }, [currentUser?.userId, dispatch]);
+
+    // טעינת המשתתפים לכל אתגר שהסתיים
+    useEffect(() => {
+        const loadParticipantsForCompletedChallenges = async () => {
+            const completedChallenges = challenges.filter(challenge => {
+                const endDate = new Date(challenge.endDate);
+                endDate.setHours(0, 0, 0, 0);
+                const now = new Date();
+                now.setHours(0, 0, 0, 0);
+                return endDate < now;
+            });
+
+            for (const challenge of completedChallenges) {
+                if (challenge.challengeId && !participantsByChallenge[challenge.challengeId]) {
+                    await dispatch(fetchChallengeParticipants(challenge.challengeId));
+                }
+            }
+        };
+
+        loadParticipantsForCompletedChallenges();
+    }, [challenges, dispatch, participantsByChallenge]);
 
     // Filter completed challenges (past end date)
     const completedChallenges = challenges.filter(challenge => {
@@ -137,11 +160,12 @@ const CompletedChallenges: React.FC = () => {
                 {completedChallenges.map(challenge => {
                     const participation = getParticipationForChallenge(challenge.challengeId!);
                     const progress = participation?.progress;
+                    const participants = participantsByChallenge[challenge.challengeId!] || [];
 
                     return (
                         <div key={challenge.challengeId} className="completed-challenge-card">
                             <div className="challenge-participants">
-                                {challenge.participantsCount || 0} משתתפים
+                                {participants.length} משתתפים
                             </div>
                             <h3>{challenge.title}</h3>
                             <p>{challenge.description}</p>
