@@ -176,7 +176,7 @@ const CompletedChallenges: React.FC = () => {
                             <div className="challenge-level">
                                 <span>רמת קושי: {challenge.level}</span>
                             </div>
-                            {!progress && (
+                            {progress==="." && (
                                 <div className="status-buttons">
                                     <button 
                                         className="success-button"
