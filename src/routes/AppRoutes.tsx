@@ -9,6 +9,7 @@ import ProfilePage from '../pages/ProfilePage';
 import UserProfile from '../pages/UserProfile';
 import ChallengesPage from '../pages/ChallengesPage';
 import ProfilesPage from '../pages/ProfilesPage';
+import ChatPage from '../pages/ChatPage';
 import PrivateRoute from '../components/auth/PrivateRoute';
 
 // Placeholder components - יש להחליף אותם בקומפוננטים האמיתיים
@@ -40,6 +41,12 @@ const AppRoutes: React.FC = () => {
             <Route path="/challenges" element={
                 <PrivateRoute>
                     <ChallengesPage />
+                </PrivateRoute>
+            } />
+            
+            <Route path="/chat" element={
+                <PrivateRoute>
+                    <ChatPage />
                 </PrivateRoute>
             } />
             
