@@ -1,6 +1,6 @@
 export interface Post {
     postId?: number;
-    userId?: number;
+    userId: number;
     content: string;
     createdDate?: string;
     userName?: string;
@@ -8,6 +8,7 @@ export interface Post {
     commentsCount?: number;
     likesCount?: number;
     isLiked?: boolean;
+    likes?: string; // רשימת מזההי משתמשים שהעשו לייק לפוסט
 }
 
 // מודל לשליחת פוסט חדש

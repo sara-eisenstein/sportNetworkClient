@@ -399,3 +399,23 @@ export const getUserPosts = async (userId: number): Promise<Post[]> => {
         return []; // במקרה של שגיאה, נחזיר מערך ריק במקום לזרוק שגיאה
     }
 };
+
+/**
+ * בודק אם משתמש מסוים עשה לייק לפוסט
+ */
+export const checkIfUserLikedPost = async (postId: number, userId: number): Promise<boolean> => {
+    try {
+        console.log('🔄 Checking if user liked post:', { postId, userId });
+        const response = await axios.get<boolean>(`${API_URL}/api/Post/${postId}/isLiked/${userId}`, {
+            headers: { 
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        console.log('✅ Like status received:', response.data);
+        return response.data;
+    } catch (error: any) {
+        console.error('❌ Failed to check like status:', error.response?.data || error.message);
+        return false;
+    }
+};

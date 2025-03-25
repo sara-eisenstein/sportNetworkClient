@@ -27,10 +27,16 @@ const PostCard: React.FC<Props> = ({ post, isOwnPost = false }) => {
     const [userProfileImageUrl, setUserProfileImageUrl] = useState<string>('');
     const [author, setAuthor] = useState<PublicUserDto | null>(null);
     const [likesCount, setLikesCount] = useState<number>(post.likesCount || 0);
-    const [isLiked, setIsLiked] = useState<boolean>(post.isLiked || false);
+    const [isLiked, setIsLiked] = useState<boolean>(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
+        // בדיקה אם המשתמש הנוכחי עשה לייק לפוסט
+        if (currentUser?.userId && post.likes) {
+            const likedUserIds = post.likes.split(',').map(id => parseInt(id.trim()));
+            setIsLiked(likedUserIds.includes(currentUser.userId));
+        }
+
         // טעינת תמונת הפוסט
         if (post.postId) {
             console.log('🔄 Loading image for post:', post.postId);
@@ -99,7 +105,7 @@ const PostCard: React.FC<Props> = ({ post, isOwnPost = false }) => {
                 URL.revokeObjectURL(userProfileImageUrl);
             }
         };
-    }, [post.postId, post.userId]);
+    }, [post.postId, post.userId, currentUser?.userId, post.likes]);
 
     // הוספת לוג בזמן רינדור
     console.log('🎨 Rendering post:', {
