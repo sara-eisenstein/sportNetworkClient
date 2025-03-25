@@ -133,12 +133,9 @@ const ChallengeCard: React.FC<Props> = ({ challenge, isCreator = false }) => {
             )}
 
             {!isCreator && challenge.isParticipating && (
-                <button 
-                    className="participation-button quit"
-                    onClick={handleParticipation}
-                >
-                    עזוב את האתגר
-                </button>
+                <div className="participation-status">
+                    ✓ משתתף באתגר
+                </div>
             )}
 
             <div className="participants-section">
