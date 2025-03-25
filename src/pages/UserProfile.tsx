@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { PublicUserDto, FitnessLevel } from '../models/user';
+import { PublicUserDto, FitnessLevel, UserDto } from '../models/user';
 import { Post } from '../models/post';
 import { getPublicUserData, getUserImage, followUser, unfollowUser } from '../services/userService';
 import { getUserPosts } from '../services/postService';
+import { getFollowers, getFollowersCount } from '../services/followerService';
 import PostCard from '../components/posts/PostCard';
 import './UserProfile.css';
 
@@ -31,6 +32,11 @@ const UserProfile: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [profileImageUrl, setProfileImageUrl] = useState<string>('/default-avatar.webp');
+    const [followersCount, setFollowersCount] = useState<number>(0);
+    const [showFollowersModal, setShowFollowersModal] = useState(false);
+    const [followers, setFollowers] = useState<UserDto[]>([]);
+    const [isLoadingFollowers, setIsLoadingFollowers] = useState(false);
+    const [followerImages, setFollowerImages] = useState<{ [key: number]: string }>({});
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -54,6 +60,10 @@ const UserProfile: React.FC = () => {
 
                 const userPosts = await getUserPosts(parseInt(userId));
                 setPosts(userPosts);
+
+                // טעינת מספר העוקבים
+                const count = await getFollowersCount(parseInt(userId));
+                setFollowersCount(count);
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'שגיאה בטעינת נתוני המשתמש');
             } finally {
@@ -63,6 +73,40 @@ const UserProfile: React.FC = () => {
 
         fetchUserData();
     }, [userId]);
+
+    const handleShowFollowers = async () => {
+        if (!userId) return;
+        
+        try {
+            setIsLoadingFollowers(true);
+            const followersList = await getFollowers(parseInt(userId));
+            setFollowers(followersList);
+            
+            // טעינת תמונות פרופיל לכל העוקבים
+            const imagePromises = followersList.map(async (follower) => {
+                try {
+                    const imageUrl = await getUserImage(follower.userId);
+                    return { userId: follower.userId, imageUrl };
+                } catch (error) {
+                    console.error(`שגיאה בטעינת תמונת פרופיל לעוקב ${follower.userId}:`, error);
+                    return { userId: follower.userId, imageUrl: '/default-avatar.webp' };
+                }
+            });
+
+            const images = await Promise.all(imagePromises);
+            const imagesMap = images.reduce((acc, { userId, imageUrl }) => {
+                acc[userId] = imageUrl;
+                return acc;
+            }, {} as { [key: number]: string });
+            
+            setFollowerImages(imagesMap);
+            setShowFollowersModal(true);
+        } catch (err) {
+            console.error('שגיאה בטעינת רשימת העוקבים:', err);
+        } finally {
+            setIsLoadingFollowers(false);
+        }
+    };
 
     const handleFollowToggle = async () => {
         if (!user) return;
@@ -109,6 +153,9 @@ const UserProfile: React.FC = () => {
                 <div className="profile-info">
                     <h1>{user.firstName} {user.lastName}</h1>
                     <p className="join-date">חבר מאז: {new Date(user.dateJoined).toLocaleDateString('he-IL')}</p>
+                    <div className="followers-count" onClick={handleShowFollowers} style={{ cursor: 'pointer' }}>
+                        <span>{followersCount} עוקבים</span>
+                    </div>
                     <button 
                         className={`follow-button ${user.isFollowing ? 'following' : ''}`}
                         onClick={handleFollowToggle}
@@ -141,6 +188,37 @@ const UserProfile: React.FC = () => {
                     </div>
                 )}
             </div>
+
+            {showFollowersModal && (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <button className="close-button" onClick={() => setShowFollowersModal(false)}>×</button>
+                        <h2>עוקבים</h2>
+                        {isLoadingFollowers ? (
+                            <div className="loading">טוען...</div>
+                        ) : (
+                            <div className="followers-list">
+                                {followers.map(follower => (
+                                    <div key={follower.userId} className="follower-item">
+                                        <img 
+                                            src={followerImages[follower.userId] || '/default-avatar.webp'} 
+                                            alt={`${follower.firstName} ${follower.lastName}`}
+                                            className="follower-avatar"
+                                            onError={(e) => {
+                                                const target = e.target as HTMLImageElement;
+                                                if (target.src !== '/default-avatar.webp') {
+                                                    target.src = '/default-avatar.webp';
+                                                }
+                                            }}
+                                        />
+                                        <span>{follower.firstName} {follower.lastName}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

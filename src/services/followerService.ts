@@ -9,7 +9,7 @@ const API_URL = process.env.REACT_APP_API_URL;
  * מביא את כל העוקבים של משתמש מסוים
  */
 export const getFollowers = async (userId: number): Promise<UserDto[]> => {
-  const response = await axios.get<UserDto[]>(`${API_URL}/api/Follower/followers/${userId}`, {
+  const response = await axios.get<UserDto[]>(`${API_URL}/api/Follower/user/${userId}/followers`, {
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
@@ -39,6 +39,18 @@ export const getFollowerStats = async (userId: number): Promise<FollowerStats> =
     },
   });
   return response.data;
+};
+
+/**
+ * מביא את מספר העוקבים של משתמש מסוים
+ */
+export const getFollowersCount = async (userId: number): Promise<number> => {
+  const response = await axios.get<UserDto[]>(`${API_URL}/api/Follower/user/${userId}/followers`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+  return response.data.length;
 };
 
 export { followUser, unfollowUser };
