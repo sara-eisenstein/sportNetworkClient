@@ -21,7 +21,7 @@ export const getFollowers = async (userId: number): Promise<UserDto[]> => {
  * מביא את כל המשתמשים שמשתמש מסוים עוקב אחריהם
  */
 export const getFollowing = async (userId: number): Promise<UserDto[]> => {
-  const response = await axios.get<UserDto[]>(`${API_URL}/api/Follower/following/${userId}`, {
+  const response = await axios.get<UserDto[]>(`${API_URL}/api/Follower/user/${userId}/following`, {
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
     },

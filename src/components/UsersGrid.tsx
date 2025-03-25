@@ -2,6 +2,9 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { UserDto } from '../models/user';
 import { getUsers, getUserImage } from '../services/userService';
+import { getFollowing } from '../services/followerService';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/store';
 import '../styles/UsersGrid.css';
 
 interface UsersGridProps {
@@ -12,12 +15,29 @@ const UsersGrid: React.FC<UsersGridProps> = ({ searchTerm }) => {
     const [users, setUsers] = useState<UserDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [showOnlyFollowing, setShowOnlyFollowing] = useState(false);
+    const currentUser = useSelector((state: RootState) => state.auth.currentUser);
 
     useEffect(() => {
         const fetchUsers = async () => {
             try {
                 setLoading(true);
-                const fetchedUsers = await getUsers();
+                let fetchedUsers: UserDto[] = [];
+
+                if (showOnlyFollowing && currentUser) {
+                    try {
+                        fetchedUsers = await getFollowing(currentUser.userId);
+                    } catch (err: any) {
+                        if (err.response?.status === 404) {
+                            setError('אין משתמשים שאתה עוקב אחריהם');
+                            setUsers([]);
+                            return;
+                        }
+                        throw err;
+                    }
+                } else {
+                    fetchedUsers = await getUsers();
+                }
                 
                 // Fetch profile images for all users
                 const usersWithImages = await Promise.all(
@@ -33,6 +53,7 @@ const UsersGrid: React.FC<UsersGridProps> = ({ searchTerm }) => {
                 );
                 
                 setUsers(usersWithImages);
+                setError(null);
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'שגיאה בטעינת המשתמשים');
             } finally {
@@ -41,7 +62,7 @@ const UsersGrid: React.FC<UsersGridProps> = ({ searchTerm }) => {
         };
 
         fetchUsers();
-    }, []);
+    }, [showOnlyFollowing, currentUser]);
 
     const filteredUsers = useMemo(() => {
         if (!searchTerm) return users;
@@ -62,7 +83,21 @@ const UsersGrid: React.FC<UsersGridProps> = ({ searchTerm }) => {
 
     return (
         <div className="users-grid-container">
-            <h1 className="users-grid-title">משתמשים</h1>
+            <div className="users-grid-header">
+                <h1 className="users-grid-title">משתמשים</h1>
+                {currentUser && (
+                    <div className="filter-container">
+                        <label className="filter-label">
+                            <input
+                                type="checkbox"
+                                checked={showOnlyFollowing}
+                                onChange={(e) => setShowOnlyFollowing(e.target.checked)}
+                            />
+                            הצג רק משתמשים שאני עוקב אחריהם
+                        </label>
+                    </div>
+                )}
+            </div>
             {filteredUsers.length === 0 ? (
                 <div className="no-results">לא נמצאו משתמשים התואמים את החיפוש</div>
             ) : (
