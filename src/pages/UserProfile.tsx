@@ -115,9 +115,11 @@ const UserProfile: React.FC = () => {
             if (user.isFollowing) {
                 await unfollowUser(user.userId);
                 setUser({ ...user, isFollowing: false });
+                setFollowersCount(prev => prev - 1);
             } else {
                 await followUser(user.userId);
                 setUser({ ...user, isFollowing: true });
+                setFollowersCount(prev => prev + 1);
             }
         } catch (err) {
             console.error('שגיאה בשינוי מצב המעקב:', err);
