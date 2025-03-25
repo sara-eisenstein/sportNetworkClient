@@ -4,7 +4,7 @@ import { AppDispatch, RootState } from '../../store/store';
 import { Challenge, ChallengeStatus } from '../../models/challenge';
 import { fetchUserChallenges } from '../../store/slices/challengeSlice';
 import { addNewAchievement } from '../../store/slices/achievementsSlice';
-import { getUserChallengeParticipations } from '../../services/challengeParticipantService';
+import { getUserParticipations } from '../../services/challengeParticipantService';
 import { ChallengeParticipant } from '../../models/challengeParticipant';
 import { updateProgress } from '../../store/slices/challengeParticipantSlice';
 import { fetchChallengeParticipants } from '../../store/slices/challengeParticipantSlice';
@@ -36,7 +36,7 @@ const CompletedChallenges: React.FC = () => {
         const loadParticipations = async () => {
             if (currentUser?.userId) {
                 try {
-                    const userParticipations = await getUserChallengeParticipations(currentUser.userId);
+                    const userParticipations = await getUserParticipations(currentUser.userId);
                     setParticipations(userParticipations);
                 } catch (err) {
                     console.error('Error fetching user participations:', err);
@@ -116,7 +116,7 @@ const CompletedChallenges: React.FC = () => {
 
             // רענון ההשתתפויות והאתגרים
             try {
-                const updatedParticipations = await getUserChallengeParticipations(currentUser.userId);
+                const updatedParticipations = await getUserParticipations(currentUser.userId);
                 setParticipations(updatedParticipations);
                 await dispatch(fetchUserChallenges(currentUser.userId)).unwrap();
             } catch (refreshErr) {
