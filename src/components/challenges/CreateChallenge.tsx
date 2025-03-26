@@ -11,8 +11,9 @@ const CreateChallenge: React.FC = () => {
     const [level, setLevel] = useState(1);
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+    const [showSuccess, setShowSuccess] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
         if (title && description && startDate && endDate) {
@@ -22,7 +23,7 @@ const CreateChallenge: React.FC = () => {
                 return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
             };
 
-            dispatch(addChallenge({
+            const result = await dispatch(addChallenge({
                 Title: title,
                 Description: description,
                 Level: level,
@@ -30,18 +31,28 @@ const CreateChallenge: React.FC = () => {
                 EndDate: formatDate(endDate)
             }));
 
-            // איפוס הטופס
-            setTitle('');
-            setDescription('');
-            setLevel(1);
-            setStartDate('');
-            setEndDate('');
+            if (addChallenge.fulfilled.match(result)) {
+                // איפוס הטופס
+                setTitle('');
+                setDescription('');
+                setLevel(1);
+                setStartDate('');
+                setEndDate('');
+                setShowSuccess(true);
+                // הסתרת ההודעה אחרי 3 שניות
+                setTimeout(() => setShowSuccess(false), 3000);
+            }
         }
     };
 
     return (
         <div className="create-challenge">
             <h3>יצירת אתגר חדש</h3>
+            {showSuccess && (
+                <div className="success-message">
+                    האתגר נוצר בהצלחה!
+                </div>
+            )}
             <form onSubmit={handleSubmit}>
                 <div className="form-group">
                     <label htmlFor="title">כותרת</label>
