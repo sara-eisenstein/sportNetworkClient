@@ -204,6 +204,25 @@
     object-fit: cover;
 }
 
+.profile-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-top: 30px;
+}
+
+.profile-left-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.profile-right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
 @media (max-width: 768px) {
     .profile-header {
         flex-direction: column;
@@ -216,6 +235,10 @@
     }
 
     .posts-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-content {
         grid-template-columns: 1fr;
     }
 } 

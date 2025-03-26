@@ -189,28 +189,32 @@ const UserProfile: React.FC = () => {
                 </div>
             </div>
 
-            <div className="profile-details">
-                <div className="bio-section">
-                    <h2>אודות</h2>
-                    <p>{user.bio || 'אין תיאור זמין'}</p>
-                </div>
-                <div className="goals-section">
-                    <h2>מטרות</h2>
-                    <p>{user.goals || 'אין מטרות זמינות'}</p>
-                </div>
-            </div>
-
-            <div className="user-posts">
-                <h2>פוסטים</h2>
-                {posts.length === 0 ? (
-                    <p>אין פוסטים זמינים</p>
-                ) : (
-                    <div className="posts-grid">
-                        {posts.map(post => (
-                            <PostCard key={post.postId} post={post} />
-                        ))}
+            <div className="profile-content">
+                <div className="profile-left-column">
+                    <div className="user-posts">
+                        <h2>פוסטים</h2>
+                        {posts.length === 0 ? (
+                            <p>אין פוסטים זמינים</p>
+                        ) : (
+                            <div className="posts-grid">
+                                {posts.map(post => (
+                                    <PostCard key={post.postId} post={post} />
+                                ))}
+                            </div>
+                        )}
                     </div>
-                )}
+                </div>
+
+                <div className="profile-right-column">
+                    <div className="bio-section">
+                        <h2>אודות</h2>
+                        <p>{user.bio || 'אין תיאור זמין'}</p>
+                    </div>
+                    <div className="goals-section">
+                        <h2>מטרות</h2>
+                        <p>{user.goals || 'אין מטרות זמינות'}</p>
+                    </div>
+                </div>
             </div>
 
             {showFollowersModal && (
