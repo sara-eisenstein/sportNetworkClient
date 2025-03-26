@@ -82,6 +82,15 @@ const Navbar: React.FC = () => {
                         <>
                             <li className="nav-item">
                                 <Link 
+                                    to="/chat" 
+                                    className={`nav-link ${isActive('/chat') ? 'active' : ''}`}
+                                    onClick={() => setMenuOpen(false)}
+                                >
+                                    צ'אט
+                                </Link>
+                            </li>
+                            <li className="nav-item">
+                                <Link 
                                     to="/profile" 
                                     className={`nav-link profile-link ${isActive('/profile') ? 'active' : ''}`}
                                     onClick={() => setMenuOpen(false)}

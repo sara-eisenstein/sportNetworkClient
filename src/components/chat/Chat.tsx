@@ -37,27 +37,63 @@ const UsersList: React.FC = () => {
     };
 
     return (
-        <div className="users-list">
-            <h2>בחר משתמש להתחיל שיחה:</h2>
-            <ul className="user-list-ul">
-                {users
-                    .filter((user) => user.userId !== myUserId) // לא מציג את עצמי
-                    .map((user) => (
-                        <li key={user.userId} className="user-list-item">
-                            <span className="user-name">{user.firstName} {user.lastName}</span>
-                            <button className="start-chat-btn" onClick={() => startChat(user.userId)}>
-                                צ'אט עם {user.firstName} {user.lastName}
-                            </button>
-                        </li>
-                    ))}
-            </ul>
-
-            {currentChatUserId !== null && myUserId !== null && (
-                <div className="chat-container">
-                    <h3>שיחה עם {users.find((u) => u.userId === currentChatUserId)?.firstName}</h3>
-                    <ChatBox recipientId={currentChatUserId} userId={myUserId} />
+        <div className="chat-container">
+            <div className="chat-sidebar">
+                <div className="chat-sidebar-header">
+                    <h2>משתתפים</h2>
                 </div>
-            )}
+                <div className="chat-users-list">
+                    {users
+                        .filter((user) => user.userId !== myUserId)
+                        .map((user) => (
+                            <div 
+                                key={user.userId} 
+                                className={`chat-user-item ${currentChatUserId === user.userId ? 'active' : ''}`}
+                            >
+                                <div className="user-info">
+                                    <div className="user-avatar">
+                                        {user.firstName[0]}{user.lastName[0]}
+                                    </div>
+                                    <span className="user-name">{user.firstName} {user.lastName}</span>
+                                </div>
+                                <button 
+                                    className={`chat-action-btn ${currentChatUserId === user.userId ? 'active' : ''}`}
+                                    onClick={() => startChat(user.userId)}
+                                >
+                                    {currentChatUserId === user.userId ? 'בשיחה' : 'התחל שיחה'}
+                                </button>
+                            </div>
+                        ))}
+                </div>
+            </div>
+            <div className="chat-main">
+                {currentChatUserId !== null && myUserId !== null ? (
+                    <div className="chat-box-container">
+                        <div className="chat-box-header">
+                            <div className="chat-box-header-content">
+                                <div className="current-user-info">
+                                    <div className="user-avatar">
+                                        {users.find(u => u.userId === currentChatUserId)?.firstName[0]}
+                                        {users.find(u => u.userId === currentChatUserId)?.lastName[0]}
+                                    </div>
+                                    <h3>שיחה עם {users.find(u => u.userId === currentChatUserId)?.firstName}</h3>
+                                </div>
+                                <button 
+                                    className="close-chat-btn"
+                                    onClick={() => setCurrentChatUserId(null)}
+                                >
+                                    סיים שיחה
+                                </button>
+                            </div>
+                        </div>
+                        <ChatBox recipientId={currentChatUserId} userId={myUserId} />
+                    </div>
+                ) : (
+                    <div className="no-chat-selected">
+                        <h2>בחר משתמש מהרשימה כדי להתחיל שיחה</h2>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };

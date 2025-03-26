@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import chatService from "../../services/chatService";
-import "./Chat.css";
 
 interface ChatBoxProps {
   recipientId: number;
