@@ -1,7 +1,7 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import ChatBox from "./ChatBox";
-import "../styles/chat.css";
+import "./Chat.css";
 
 interface User {
     userId: number;

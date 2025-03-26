@@ -26,32 +26,56 @@ const ChatBox: React.FC<ChatBoxProps> = ({ recipientId, userId }) => {
     console.log('starting chat', { recipientId, userId });
     // אם יש לנו recipientId ו-userId נתחבר ל-websocket
     if (recipientId && userId) {
-      console.log("Trying to connect WebSocket...");
-      chatService.connect(userId).then(() => {
-        setIsConnected(true);
-        console.log("WebSocket connected successfully!");
-
-        // מאזינים להודעות שמתקבלות
-        chatService.onMessage((msg: any) => {
-          console.log('if message sand', msg, recipientId, userId);
-          if (
-            (msg.SenderId === recipientId && msg.RecipientId === userId) ||
-            (msg.SenderId === userId && msg.RecipientId === recipientId)
-          ) {
-            console.log('received message2', msg);
-            setMessages((prev) => [...prev, msg]);
-          }
+      // בדיקה אם כבר יש חיבור פעיל
+      if (!chatService.isSocketConnected()) {
+        console.log("Trying to connect WebSocket...");
+        chatService.connect(userId).then(() => {
+          setIsConnected(true);
+          console.log("WebSocket connected successfully!");
+        }).catch(err => {
+          console.error("Connection failed:", err);
+          setIsConnected(false);
         });
-      }).catch(err => {
-        console.error("Connection failed:", err);
-        setIsConnected(false);
+      } else {
+        console.log("WebSocket already connected");
+        setIsConnected(true);
+      }
+
+      // מאזינים להודעות שמתקבלות
+      chatService.onMessage((msg: any) => {
+        console.log('WebSocket message received:', msg);
+        if (
+          (msg.SenderId === recipientId && msg.RecipientId === userId) ||
+          (msg.SenderId === userId && msg.RecipientId === recipientId)
+        ) {
+          console.log('Message matches current chat:', { msg, recipientId, userId });
+          setMessages((prev) => {
+            // בדיקה פחות מחמירה - רק על תוכן ההודעה
+            const isDuplicate = prev.some(
+              existingMsg => existingMsg.MessageContent === msg.MessageContent
+            );
+            
+            if (isDuplicate) {
+              console.log('Duplicate message found, skipping:', msg.MessageContent);
+              return prev;
+            }
+            
+            console.log('Adding new message:', msg.MessageContent);
+            return [...prev, msg];
+          });
+        } else {
+          console.log('Message does not match current chat:', { msg, recipientId, userId });
+        }
       });
     }
 
     // ניקוי החיבור כשעוזבים את הצ'אט
     return () => {
-      chatService.disconnect();
-      setIsConnected(false);
+      // רק אם אנחנו עוזבים את הדף לגמרי
+      if (!document.hidden) {
+        chatService.disconnect();
+        setIsConnected(false);
+      }
     };
   }, [recipientId, userId]);
 // טעינת הודעות ישנות 

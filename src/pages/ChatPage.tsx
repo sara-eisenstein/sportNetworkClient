@@ -1,5 +1,6 @@
 import React from 'react';
 import Chat from '../components/chat/Chat';
+import './ChatPage.css';
 
 const ChatPage: React.FC = () => {
     return (
