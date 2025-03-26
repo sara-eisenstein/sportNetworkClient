@@ -37,6 +37,7 @@ const CompletedChallenges: React.FC = () => {
             if (currentUser?.userId) {
                 try {
                     const userParticipations = await getUserParticipations(currentUser.userId);
+                    console.log('User participations:', userParticipations);
                     setParticipations(userParticipations);
                 } catch (err) {
                     console.error('Error fetching user participations:', err);
@@ -160,6 +161,7 @@ const CompletedChallenges: React.FC = () => {
                 {completedChallenges.map(challenge => {
                     const participation = getParticipationForChallenge(challenge.challengeId!);
                     const progress = participation?.progress;
+                    console.log('Challenge:', challenge.challengeId, 'Participation:', participation, 'Progress:', progress);
                     const participants = participantsByChallenge[challenge.challengeId!] || [];
 
                     return (
@@ -176,7 +178,7 @@ const CompletedChallenges: React.FC = () => {
                             <div className="challenge-level">
                                 <span>רמת קושי: {challenge.level}</span>
                             </div>
-                            {progress==="." && (
+                            {(!participation || progress === ".") && (
                                 <div className="status-buttons">
                                     <button 
                                         className="success-button"

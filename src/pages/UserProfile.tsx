@@ -62,8 +62,17 @@ const UserProfile: React.FC = () => {
                 setPosts(userPosts);
 
                 // טעינת מספר העוקבים
-                const count = await getFollowersCount(parseInt(userId));
-                setFollowersCount(count);
+                try {
+                    const count = await getFollowersCount(parseInt(userId));
+                    setFollowersCount(count);
+                } catch (err: any) {
+                    if (err.response?.status === 404) {
+                        setFollowersCount(0);
+                    } else {
+                        console.error('שגיאה בטעינת מספר העוקבים:', err);
+                        setFollowersCount(0);
+                    }
+                }
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'שגיאה בטעינת נתוני המשתמש');
             } finally {
@@ -80,6 +89,13 @@ const UserProfile: React.FC = () => {
         try {
             setIsLoadingFollowers(true);
             const followersList = await getFollowers(parseInt(userId));
+            
+            if (!followersList || followersList.length === 0) {
+                setFollowers([]);
+                setShowFollowersModal(true);
+                return;
+            }
+            
             setFollowers(followersList);
             
             // טעינת תמונות פרופיל לכל העוקבים
@@ -101,8 +117,14 @@ const UserProfile: React.FC = () => {
             
             setFollowerImages(imagesMap);
             setShowFollowersModal(true);
-        } catch (err) {
+        } catch (err: any) {
             console.error('שגיאה בטעינת רשימת העוקבים:', err);
+            if (err.response?.status === 404) {
+                setFollowers([]);
+            } else {
+                setFollowers([]);
+            }
+            setShowFollowersModal(true);
         } finally {
             setIsLoadingFollowers(false);
         }

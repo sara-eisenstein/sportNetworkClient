@@ -43,7 +43,7 @@ export const getUserParticipations = async (userId: number): Promise<ChallengePa
         }
 
         const response = await axios.get<ChallengeParticipant[]>(
-            `${API_URL}/challengeToUser?userId=${userId}`,
+            `${API_URL}/api/ChallengeParticipant/user/${userId}`,
             {
                 headers: {
                     'Authorization': `Bearer ${token}`,
