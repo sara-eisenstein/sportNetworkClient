@@ -94,7 +94,13 @@ const RegisterPage: React.FC = () => {
                 profilePicture: profilePicture || undefined
             };
 
-            await dispatch(register(registerData)).unwrap();
+            const result = await dispatch(register(registerData)).unwrap();
+            console.log('Registration successful, user logged in:', result);
+            
+            // Wait a brief moment to ensure token is set
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // Navigate to the target page
             navigate(location.state?.from?.pathname || '/');
         } catch (err) {
             console.error('Registration error:', err);
