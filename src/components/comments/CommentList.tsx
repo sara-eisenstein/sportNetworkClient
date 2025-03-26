@@ -95,7 +95,10 @@ const CommentList: React.FC<Props> = ({ postId }) => {
                 postId,
                 userId: currentUser.userId,
                 content: newComment.trim()
-            }));
+            })).then(() => {
+                // Fetch updated comments after successfully adding a new comment
+                dispatch(fetchComments(postId));
+            });
             setNewComment('');
         } else {
             console.log('❌ Cannot submit comment:', {
