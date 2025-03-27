@@ -2,6 +2,7 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import ChatBox from "./ChatBox";
 import "./Chat.css";
+import { getUserImage } from "../../services/userService";
 
 interface User {
     userId: number;
@@ -13,6 +14,7 @@ const UsersList: React.FC = () => {
     const [users, setUsers] = useState<User[]>([]);
     const [currentChatUserId, setCurrentChatUserId] = useState<number | null>(null);
     const [myUserId, setMyUserId] = useState<number | null>(null);
+    const [profileImages, setProfileImages] = useState<{ [key: number]: string }>({});
 
     // נשלוף את ה-UserId מהטוקן פעם אחת
     useEffect(() => {
@@ -25,9 +27,29 @@ const UsersList: React.FC = () => {
     // נביא את כל המשתמשים
     useEffect(() => {
         axios.get("https://localhost:7047/api/User")
-            .then((response) => {
-                setUsers(response.data);
-                console.log('users', response.data);
+            .then(async (response) => {
+                const usersData = response.data;
+                setUsers(usersData);
+                console.log('users', usersData);
+
+                // טעינת תמונות פרופיל לכל המשתמשים
+                const imagePromises = usersData.map(async (user: User) => {
+                    try {
+                        const imageUrl = await getUserImage(user.userId);
+                        return { userId: user.userId, imageUrl };
+                    } catch (error) {
+                        console.error(`שגיאה בטעינת תמונת פרופיל למשתמש ${user.userId}:`, error);
+                        return { userId: user.userId, imageUrl: '/default-avatar.webp' };
+                    }
+                });
+
+                const images = await Promise.all(imagePromises);
+                const imagesMap = images.reduce((acc, { userId, imageUrl }) => {
+                    acc[userId] = imageUrl;
+                    return acc;
+                }, {} as { [key: number]: string });
+                
+                setProfileImages(imagesMap);
             })
             .catch((error) => console.error("שגיאה בעת שליפת המשתמשים:", error));
     }, []);
@@ -51,9 +73,17 @@ const UsersList: React.FC = () => {
                                 className={`chat-user-item ${currentChatUserId === user.userId ? 'active' : ''}`}
                             >
                                 <div className="user-info">
-                                    <div className="user-avatar">
-                                        {user.firstName[0]}{user.lastName[0]}
-                                    </div>
+                                    <img 
+                                        src={profileImages[user.userId] || '/default-avatar.webp'}
+                                        alt={`${user.firstName} ${user.lastName}`}
+                                        className="user-avatar"
+                                        onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            if (target.src !== '/default-avatar.webp') {
+                                                target.src = '/default-avatar.webp';
+                                            }
+                                        }}
+                                    />
                                     <span className="user-name">{user.firstName} {user.lastName}</span>
                                 </div>
                                 <button 
@@ -72,10 +102,17 @@ const UsersList: React.FC = () => {
                         <div className="chat-box-header">
                             <div className="chat-box-header-content">
                                 <div className="current-user-info">
-                                    <div className="user-avatar">
-                                        {users.find(u => u.userId === currentChatUserId)?.firstName[0]}
-                                        {users.find(u => u.userId === currentChatUserId)?.lastName[0]}
-                                    </div>
+                                    <img 
+                                        src={profileImages[currentChatUserId] || '/default-avatar.webp'}
+                                        alt={`${users.find(u => u.userId === currentChatUserId)?.firstName} ${users.find(u => u.userId === currentChatUserId)?.lastName}`}
+                                        className="user-avatar"
+                                        onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            if (target.src !== '/default-avatar.webp') {
+                                                target.src = '/default-avatar.webp';
+                                            }
+                                        }}
+                                    />
                                     <h3>שיחה עם {users.find(u => u.userId === currentChatUserId)?.firstName}</h3>
                                 </div>
                                 <button 
