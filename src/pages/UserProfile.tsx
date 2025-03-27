@@ -1,29 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { PublicUserDto, FitnessLevel, UserDto } from '../models/user';
+import { PublicUserDto, UserDto } from '../models/user';
 import { Post } from '../models/post';
 import { getPublicUserData, getUserImage, followUser, unfollowUser } from '../services/userService';
 import { getUserPosts } from '../services/postService';
 import { getFollowers, getFollowersCount } from '../services/followerService';
 import PostCard from '../components/posts/PostCard';
 import './UserProfile.css';
-
-// פונקציה עזר להמרת רמת כושר למחרוזת בעברית
-const getFitnessLevelText = (level: FitnessLevel | number): string => {
-    const levelNum = Number(level);
-    
-    if (levelNum === 0 || levelNum === FitnessLevel.Beginner) {
-        return 'מתחיל';
-    } else if (levelNum === 1 || levelNum === FitnessLevel.Intermediate) {
-        return 'בינוני';
-    } else if (levelNum === 2 || levelNum === FitnessLevel.Advanced) {
-        return 'מתקדם';
-    } else if (levelNum === 3 || levelNum === FitnessLevel.Professional) {
-        return 'מקצועי';
-    } else {
-        return 'לא ידוע';
-    }
-};
 
 const UserProfile: React.FC = () => {
     const { userId } = useParams<{ userId: string }>();

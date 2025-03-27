@@ -4,10 +4,13 @@ interface ChallengeRecommendation {
     challengeId: number;
 }
 
+const API_URL = process.env.REACT_APP_API_URL;
+
+
 export const getRecommendedChallenges = async (userPrompt: string, token: string): Promise<number[]> => {
     try {
         const response = await axios.post<ChallengeRecommendation[]>(
-            'https://localhost:7047/api/ChallengeRecommendation/recommend',
+            `${API_URL}/api/ChallengeRecommendation/recommend`,
             { userPrompt },
             {
                 headers: {

@@ -4,6 +4,8 @@ import ChatBox from "./ChatBox";
 import "./Chat.css";
 import { getUserImage } from "../../services/userService";
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 interface User {
     userId: number;
     firstName: string;
@@ -28,7 +30,7 @@ const UsersList: React.FC = () => {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const response = await axios.get("https://localhost:7047/api/User");
+                const response = await axios.get(`${API_URL}/api/User`);
                 const usersWithImages = await Promise.all(
                     response.data.map(async (user: User) => {
                         try {

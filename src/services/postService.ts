@@ -2,7 +2,7 @@ import axios from "axios";
 import { Post } from "../models/post";
 
 // וידוא שיש ערך ברירת מחדל ל-API_URL
-const API_URL = process.env.REACT_APP_API_URL || 'https://localhost:7047';
+const API_URL = process.env.REACT_APP_API_URL;
 
 console.log('🌐 API URL:', API_URL);
 

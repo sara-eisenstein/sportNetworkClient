@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../../store/store';
-import { Challenge, ChallengeStatus } from '../../models/challenge';
+import { Challenge } from '../../models/challenge';
 import { fetchUserChallenges } from '../../store/slices/challengeSlice';
 import { addNewAchievement } from '../../store/slices/achievementsSlice';
 import { getUserParticipations } from '../../services/challengeParticipantService';

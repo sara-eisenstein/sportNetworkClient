@@ -105,10 +105,8 @@ const ProfilePage: React.FC = () => {
     });
     const [profilePictureFile, setProfilePictureFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string>('');
-    const [isLoadingProfileImage, setIsLoadingProfileImage] = useState(false);
     const [updateError, setUpdateError] = useState<string | null>(null);
     const [showPassword, setShowPassword] = useState(false);
-    const { token } = useSelector((state: RootState) => state.auth);
     const [followersCount, setFollowersCount] = useState<number>(0);
     const [showFollowersModal, setShowFollowersModal] = useState(false);
     const [followers, setFollowers] = useState<UserDto[]>([]);
@@ -147,52 +145,6 @@ const ProfilePage: React.FC = () => {
         }
     }, [isEditing]);
 
-    // פונקציה לטעינת התמונה הקיימת כקובץ
-    const fetchExistingProfileImage = async () => {
-        if (!currentUser?.userId) return null;
-        
-        try {
-            setIsLoadingProfileImage(true);
-            const response = await fetch(
-                `${process.env.REACT_APP_API_URL}/getUserImage/${currentUser.userId}`,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                }
-            );
-            
-            if (!response.ok) {
-                console.error('Failed to fetch profile image:', response.statusText);
-                return null;
-            }
-            
-            const blob = await response.blob();
-            // שימוש בסוג הקובץ המקורי מה-Content-Type
-            const contentType = response.headers.get('Content-Type') || blob.type;
-            // קביעת סיומת הקובץ לפי סוג התוכן
-            const extension = contentType.split('/')[1] || '';
-            const fileName = `profile_${currentUser.userId}_${Date.now()}.${extension}`;
-            
-            const file = new File([blob], fileName, { 
-                type: contentType,
-                lastModified: Date.now()
-            });
-            
-            console.log('Successfully fetched existing profile image:', {
-                name: file.name,
-                size: file.size,
-                type: file.type
-            });
-            
-            return file;
-        } catch (error) {
-            console.error('Error fetching profile image:', error);
-            return null;
-        } finally {
-            setIsLoadingProfileImage(false);
-        }
-    };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;

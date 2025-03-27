@@ -1,7 +1,7 @@
 import axios from "axios";
 
-const WS_URL = "wss://localhost:7047/api/chat/connect";
 const HTTPS_URL = process.env.REACT_APP_API_URL;
+const WS_URL = process.env.REACT_APP_WS_URL;
 
 class ChatService {
   private socket: WebSocket | null = null;
@@ -102,4 +102,5 @@ class ChatService {
   }
 }
 
-export default new ChatService();
+const chatService = new ChatService();
+export default chatService;
