@@ -5,6 +5,7 @@ import { getUserImage } from "../../services/userService";
 interface ChatBoxProps {
   recipientId: number;
   userId: number;
+  recipientName: string;
 }
 
 interface Message {
@@ -19,14 +20,14 @@ interface Message {
   profileImage?: string;
 }
 
-const ChatBox: React.FC<ChatBoxProps> = ({ recipientId, userId }) => {
+const ChatBox: React.FC<ChatBoxProps> = ({ recipientId, userId, recipientName }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [message, setMessage] = useState("");
   const [myName, setMyName] = useState<string>("");
   const [isConnected, setIsConnected] = useState(false);
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true); // לבדוק אם יש עוד הודעות להביא
-  const [isLoadingMore, setIsLoadingMore] = useState(false); // טוען הודעות ישנות
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const messagesContainerRef = React.useRef<HTMLDivElement>(null);
 
   // פונקציה לטעינת תמונת פרופיל
@@ -124,6 +125,16 @@ const ChatBox: React.FC<ChatBoxProps> = ({ recipientId, userId }) => {
               return prev;
             }
             
+            // פענוח השם
+            const decodeName = (name: string): string => {
+              try {
+                return decodeURIComponent(escape(name));
+              } catch (e) {
+                console.error('Error decoding name:', e);
+                return name;
+              }
+            };
+
             // אם ההודעה היא מהמשתמש הנוכחי, נוסיף את המידע מהטוקן
             const messageToAdd = senderId === userId ? {
               ...msg,
@@ -131,7 +142,13 @@ const ChatBox: React.FC<ChatBoxProps> = ({ recipientId, userId }) => {
               userName: decodeName(userNameFromToken),
               firstName: decodeName(firstNameFromToken),
               lastName: decodeName(lastNameFromToken)
-            } : { ...msg, profileImage };
+            } : {
+              ...msg,
+              profileImage,
+              userName: recipientName,
+              firstName: msg.firstName ? decodeName(msg.firstName) : '',
+              lastName: msg.lastName ? decodeName(msg.lastName) : ''
+            };
             
             console.log('Adding new message:', messageToAdd);
             return [...prev, messageToAdd];
@@ -166,6 +183,16 @@ const ChatBox: React.FC<ChatBoxProps> = ({ recipientId, userId }) => {
         return;
       }
 
+      // פונקציה לפענוח שמות
+      const decodeName = (name: string): string => {
+        try {
+          return decodeURIComponent(escape(name));
+        } catch (e) {
+          console.error('Error decoding name:', e);
+          return name;
+        }
+      };
+
       // טעינת תמונות פרופיל לכל ההודעות
       const messagesWithImages = await Promise.all(
         initialMessages.map(async (msg) => {
@@ -173,7 +200,32 @@ const ChatBox: React.FC<ChatBoxProps> = ({ recipientId, userId }) => {
             console.log('Processing message:', msg);
             const senderId = getSenderId(msg);
             const profileImage = await loadProfileImage(senderId);
-            return { ...msg, profileImage };
+
+            // אם ההודעה היא מהמשתמש הנוכחי, נשתמש בשם מהטוקן
+            if (senderId === userId) {
+              const token = localStorage.getItem("token");
+              const decoded = token ? JSON.parse(atob(token.split(".")[1])) : null;
+              const firstName = decodeName(decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"] || "");
+              const lastName = decodeName(decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"] || "");
+              const userName = decodeName(decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] || "Unknown");
+              
+              return {
+                ...msg,
+                profileImage,
+                userName,
+                firstName,
+                lastName
+              };
+            }
+
+            // אם זו הודעה מהצד השני, נשתמש בשם שקיבלנו כפרופ
+            return {
+              ...msg,
+              profileImage,
+              userName: recipientName,
+              firstName: msg.firstName ? decodeName(msg.firstName) : '',
+              lastName: msg.lastName ? decodeName(msg.lastName) : ''
+            };
           } catch (error) {
             console.error('Error processing message:', msg, error);
             return { ...msg, profileImage: '/default-avatar.webp' };
@@ -202,19 +254,6 @@ const ChatBox: React.FC<ChatBoxProps> = ({ recipientId, userId }) => {
     const token = localStorage.getItem("token");
     const decoded = token ? JSON.parse(atob(token.split(".")[1])) : null;
     
-    // ניסיון לתקן את הקידוד
-    const decodeName = (name: string): string => {
-      try {
-        return decodeURIComponent(escape(name));
-      } catch (e) {
-        console.error('Error decoding name:', e);
-        return name;
-      }
-    };
-
-    const firstName = decodeName(decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"] || "");
-    const lastName = decodeName(decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"] || "");
-    
     // טעינת תמונת פרופיל של המשתמש השולח
     const profileImage = await loadProfileImage(userId);
     
@@ -223,8 +262,8 @@ const ChatBox: React.FC<ChatBoxProps> = ({ recipientId, userId }) => {
       RecipientId: recipientId, 
       MessageContent: message, 
       userName: myName,
-      firstName,
-      lastName,
+      firstName: decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"] || "",
+      lastName: decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"] || "",
       profileImage
     };
 
@@ -235,7 +274,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ recipientId, userId }) => {
 
     // הוספת ההודעה למצב המקומי
     setMessages(prev => [...prev, payload]);
-    
+
     // ננקה את תיבת ההודעה
     setMessage("");
   };
@@ -260,6 +299,16 @@ const ChatBox: React.FC<ChatBoxProps> = ({ recipientId, userId }) => {
       return;
     }
 
+    // פונקציה לפענוח שמות
+    const decodeName = (name: string): string => {
+      try {
+        return decodeURIComponent(escape(name));
+      } catch (e) {
+        console.error('Error decoding name:', e);
+        return name;
+      }
+    };
+
     // טעינת תמונות פרופיל לכל ההודעות
     const messagesWithImages = await Promise.all(
       oldMessages.map(async (msg) => {
@@ -267,7 +316,32 @@ const ChatBox: React.FC<ChatBoxProps> = ({ recipientId, userId }) => {
           console.log('Processing old message:', msg);
           const senderId = getSenderId(msg);
           const profileImage = await loadProfileImage(senderId);
-          return { ...msg, profileImage };
+
+          // אם ההודעה היא מהמשתמש הנוכחי, נשתמש בשם מהטוקן
+          if (senderId === userId) {
+            const token = localStorage.getItem("token");
+            const decoded = token ? JSON.parse(atob(token.split(".")[1])) : null;
+            const firstName = decodeName(decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"] || "");
+            const lastName = decodeName(decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"] || "");
+            const userName = decodeName(decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] || "Unknown");
+            
+            return {
+              ...msg,
+              profileImage,
+              userName,
+              firstName,
+              lastName
+            };
+          }
+
+          // אם זו הודעה מהצד השני, נפענח את השמות שהגיעו מהשרת
+          return {
+            ...msg,
+            profileImage,
+            userName: recipientName,
+            firstName: msg.firstName ? decodeName(msg.firstName) : '',
+            lastName: msg.lastName ? decodeName(msg.lastName) : ''
+          };
         } catch (error) {
           console.error('Error processing old message:', msg, error);
           return { ...msg, profileImage: '/default-avatar.webp' };
@@ -299,21 +373,26 @@ const ChatBox: React.FC<ChatBoxProps> = ({ recipientId, userId }) => {
         ref={messagesContainerRef}
         onScroll={handleScroll}
       >
-        {messages.map((msg, idx) => (
-          <div key={idx} className={`chat-message ${msg.userName === myName ? "my-message" : "other-message"}`}>
-            <div className="message-sender-info">
-              <div className="user-avatar">
-                {msg.profileImage ? (
-                  <img src={msg.profileImage} alt={`${msg.firstName} ${msg.lastName}`} />
-                ) : (
-                  `${msg.firstName?.[0]}${msg.lastName?.[0]}`
-                )}
+        {messages.map((msg, idx) => {
+          const isSentByMe = (msg.SenderId || msg.senderId) === userId;
+          const displayName = isSentByMe ? myName : recipientName;
+          
+          return (
+            <div key={idx} className={`chat-message ${isSentByMe ? "my-message" : "other-message"}`}>
+              <div className="message-sender-info">
+                <div className="user-avatar">
+                  {msg.profileImage ? (
+                    <img src={msg.profileImage} alt={displayName} />
+                  ) : (
+                    displayName.split(' ').map(name => name[0]).join('')
+                  )}
+                </div>
+                <span className="sender-name">{displayName}</span>
               </div>
-              <span className="sender-name">{msg.userName}</span>
+              <div className="message-content">{getMessageContent(msg)}</div>
             </div>
-            <div className="message-content">{getMessageContent(msg)}</div>
-          </div>
-        ))}
+          );
+        })}
         {isLoadingMore && (
           <div className="loading-spinner">
             <div className="weight-spinner">

@@ -104,7 +104,10 @@ const UsersList: React.FC = () => {
                                             );
                                         })()}
                                     </div>
-                                    <h3>שיחה עם {users.find(u => u.userId === currentChatUserId)?.firstName}</h3>
+                                    <h3>שיחה עם {(() => {
+                                        const currentUser = users.find(u => u.userId === currentChatUserId);
+                                        return currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : '';
+                                    })()}</h3>
                                 </div>
                                 <button 
                                     className="close-chat-btn"
@@ -114,7 +117,14 @@ const UsersList: React.FC = () => {
                                 </button>
                             </div>
                         </div>
-                        <ChatBox recipientId={currentChatUserId} userId={myUserId} />
+                        <ChatBox 
+                            recipientId={currentChatUserId} 
+                            userId={myUserId} 
+                            recipientName={(() => {
+                                const currentUser = users.find(u => u.userId === currentChatUserId);
+                                return currentUser ? `${currentUser.firstName} ${currentUser.lastName}` : '';
+                            })()} 
+                        />
                     </div>
                 ) : (
                     <div className="no-chat-selected">
