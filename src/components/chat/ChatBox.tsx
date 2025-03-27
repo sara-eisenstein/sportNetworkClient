@@ -11,7 +11,8 @@ interface Message {
   SenderId?: number;
   senderId?: number;
   RecipientId: number;
-  MessageContent: string;
+  MessageContent?: string;
+  messageContent?: string;
   userName: string;
   firstName?: string;
   lastName?: string;
@@ -47,12 +48,40 @@ const ChatBox: React.FC<ChatBoxProps> = ({ recipientId, userId }) => {
     return msg.SenderId || msg.senderId;
   };
 
+  // פונקציית עזר לקבלת תוכן ההודעה
+  const getMessageContent = (msg: Message): string => {
+    return msg.MessageContent || msg.messageContent || '';
+  };
+
   useEffect(() => {
     // חיפוש שם המשתמש מתוך הטוקן
     const token = localStorage.getItem("token");
     const decoded = token ? JSON.parse(atob(token.split(".")[1])) : null;
+    console.log('Token decoded data:', decoded);
+
+    // ניסיון לפענח את השם בקידוד נכון
     const userNameFromToken = decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] || "Unknown";
-    setMyName(userNameFromToken);
+    const firstNameFromToken = decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"] || "";
+    const lastNameFromToken = decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"] || "";
+
+    console.log('Names from token:', {
+      userNameFromToken,
+      firstNameFromToken,
+      lastNameFromToken
+    });
+
+    // ניסיון לתקן את הקידוד
+    const decodeName = (name: string): string => {
+      try {
+        // ניסיון לפענח URI-encoded string
+        return decodeURIComponent(escape(name));
+      } catch (e) {
+        console.error('Error decoding name:', e);
+        return name;
+      }
+    };
+
+    setMyName(decodeName(userNameFromToken));
 
     console.log('starting chat', { recipientId, userId });
     // אם יש לנו recipientId ו-userId נתחבר ל-websocket
@@ -87,16 +116,25 @@ const ChatBox: React.FC<ChatBoxProps> = ({ recipientId, userId }) => {
           
           setMessages((prev) => {
             const isDuplicate = prev.some(
-              existingMsg => existingMsg.MessageContent === msg.MessageContent
+              existingMsg => getMessageContent(existingMsg) === getMessageContent(msg)
             );
             
             if (isDuplicate) {
-              console.log('Duplicate message found, skipping:', msg.MessageContent);
+              console.log('Duplicate message found, skipping:', getMessageContent(msg));
               return prev;
             }
             
-            console.log('Adding new message:', msg.MessageContent);
-            return [...prev, { ...msg, profileImage }];
+            // אם ההודעה היא מהמשתמש הנוכחי, נוסיף את המידע מהטוקן
+            const messageToAdd = senderId === userId ? {
+              ...msg,
+              profileImage,
+              userName: decodeName(userNameFromToken),
+              firstName: decodeName(firstNameFromToken),
+              lastName: decodeName(lastNameFromToken)
+            } : { ...msg, profileImage };
+            
+            console.log('Adding new message:', messageToAdd);
+            return [...prev, messageToAdd];
           });
         } else {
           console.log('Message does not match current chat:', { msg, recipientId, userId });
@@ -155,7 +193,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ recipientId, userId }) => {
   }, [recipientId, userId]);
 
   const handleSend = async () => {
-    if (!message.trim()) return; // אם ההודעה ריקה, לא נשלח
+    if (!message.trim()) return;
     if (!chatService.isSocketConnected()) {
       console.error("Can't send: WebSocket not connected yet");
       return;
@@ -163,8 +201,19 @@ const ChatBox: React.FC<ChatBoxProps> = ({ recipientId, userId }) => {
     
     const token = localStorage.getItem("token");
     const decoded = token ? JSON.parse(atob(token.split(".")[1])) : null;
-    const firstName = decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"] || "";
-    const lastName = decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"] || "";
+    
+    // ניסיון לתקן את הקידוד
+    const decodeName = (name: string): string => {
+      try {
+        return decodeURIComponent(escape(name));
+      } catch (e) {
+        console.error('Error decoding name:', e);
+        return name;
+      }
+    };
+
+    const firstName = decodeName(decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"] || "");
+    const lastName = decodeName(decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"] || "");
     
     // טעינת תמונת פרופיל של המשתמש השולח
     const profileImage = await loadProfileImage(userId);
@@ -179,9 +228,14 @@ const ChatBox: React.FC<ChatBoxProps> = ({ recipientId, userId }) => {
       profileImage
     };
 
-    // שליחה לשרת (אין עדכון מיידי של ה־state פה)
+    console.log('Sending message with payload:', payload);
+
+    // שליחה לשרת
     chatService.sendMessage(payload);
 
+    // הוספת ההודעה למצב המקומי
+    setMessages(prev => [...prev, payload]);
+    
     // ננקה את תיבת ההודעה
     setMessage("");
   };
@@ -257,7 +311,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ recipientId, userId }) => {
               </div>
               <span className="sender-name">{msg.userName}</span>
             </div>
-            <div className="message-content">{msg.MessageContent}</div>
+            <div className="message-content">{getMessageContent(msg)}</div>
           </div>
         ))}
         {isLoadingMore && (
