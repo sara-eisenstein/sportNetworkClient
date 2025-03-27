@@ -49,7 +49,14 @@ class ChatService {
     });
   }
 
-  sendMessage(payload: { SenderId: number; RecipientId: number; MessageContent: string; userName: string }): void {
+  sendMessage(payload: { 
+    SenderId: number; 
+    RecipientId: number; 
+    MessageContent: string; 
+    userName: string;
+    firstName?: string;
+    lastName?: string;
+  }): void {
     if (this.socket && this.isConnected) {
       const stringMessage = JSON.stringify(payload);
       console.log('sending message', { payload, stringMessage });

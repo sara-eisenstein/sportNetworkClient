@@ -1,13 +1,25 @@
 import React, { useEffect, useState } from "react";
 import chatService from "../../services/chatService";
+import { getUserImage } from "../../services/userService";
 
 interface ChatBoxProps {
   recipientId: number;
   userId: number;
 }
 
+interface Message {
+  SenderId?: number;
+  senderId?: number;
+  RecipientId: number;
+  MessageContent: string;
+  userName: string;
+  firstName?: string;
+  lastName?: string;
+  profileImage?: string;
+}
+
 const ChatBox: React.FC<ChatBoxProps> = ({ recipientId, userId }) => {
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [message, setMessage] = useState("");
   const [myName, setMyName] = useState<string>("");
   const [isConnected, setIsConnected] = useState(false);
@@ -15,6 +27,25 @@ const ChatBox: React.FC<ChatBoxProps> = ({ recipientId, userId }) => {
   const [hasMore, setHasMore] = useState(true); // לבדוק אם יש עוד הודעות להביא
   const [isLoadingMore, setIsLoadingMore] = useState(false); // טוען הודעות ישנות
   const messagesContainerRef = React.useRef<HTMLDivElement>(null);
+
+  // פונקציה לטעינת תמונת פרופיל
+  const loadProfileImage = async (userId: number | undefined): Promise<string> => {
+    try {
+      if (!userId) {
+        console.warn('Attempted to load profile image for undefined userId');
+        return '/default-avatar.webp';
+      }
+      return await getUserImage(userId);
+    } catch (error) {
+      console.error('Error loading profile image:', error);
+      return '/default-avatar.webp';
+    }
+  };
+
+  // פונקציית עזר לקבלת מזהה השולח
+  const getSenderId = (msg: Message): number | undefined => {
+    return msg.SenderId || msg.senderId;
+  };
 
   useEffect(() => {
     // חיפוש שם המשתמש מתוך הטוקן
@@ -42,15 +73,19 @@ const ChatBox: React.FC<ChatBoxProps> = ({ recipientId, userId }) => {
       }
 
       // מאזינים להודעות שמתקבלות
-      chatService.onMessage((msg: any) => {
+      chatService.onMessage(async (msg: any) => {
         console.log('WebSocket message received:', msg);
+        const senderId = getSenderId(msg);
         if (
-          (msg.SenderId === recipientId && msg.RecipientId === userId) ||
-          (msg.SenderId === userId && msg.RecipientId === recipientId)
+          (senderId === recipientId && msg.RecipientId === userId) ||
+          (senderId === userId && msg.RecipientId === recipientId)
         ) {
           console.log('Message matches current chat:', { msg, recipientId, userId });
+          
+          // טעינת תמונת פרופיל למשתמש
+          const profileImage = await loadProfileImage(senderId);
+          
           setMessages((prev) => {
-            // בדיקה פחות מחמירה - רק על תוכן ההודעה
             const isDuplicate = prev.some(
               existingMsg => existingMsg.MessageContent === msg.MessageContent
             );
@@ -61,7 +96,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ recipientId, userId }) => {
             }
             
             console.log('Adding new message:', msg.MessageContent);
-            return [...prev, msg];
+            return [...prev, { ...msg, profileImage }];
           });
         } else {
           console.log('Message does not match current chat:', { msg, recipientId, userId });
@@ -78,15 +113,40 @@ const ChatBox: React.FC<ChatBoxProps> = ({ recipientId, userId }) => {
       }
     };
   }, [recipientId, userId]);
-// טעינת הודעות ישנות 
+
+  // טעינת הודעות ישנות עם תמונות פרופיל 
   useEffect(() => {
     const initialLoad = async () => {
-      console.log(userId,recipientId)
+      console.log('Loading initial messages for:', { userId, recipientId });
       const initialMessages = await chatService.fetchOldMessages(userId, recipientId, 1);
-      console.log ("ההודעות האחרונות:",initialMessages)
-      setMessages(initialMessages.reverse()); // נהפוך כי בשרת הן יורדות מהחדשה לישנה
+      console.log("Raw messages from server:", initialMessages);
+      
+      if (!initialMessages || initialMessages.length === 0) {
+        console.log('No messages found');
+        setMessages([]);
+        setHasMore(false);
+        return;
+      }
+
+      // טעינת תמונות פרופיל לכל ההודעות
+      const messagesWithImages = await Promise.all(
+        initialMessages.map(async (msg) => {
+          try {
+            console.log('Processing message:', msg);
+            const senderId = getSenderId(msg);
+            const profileImage = await loadProfileImage(senderId);
+            return { ...msg, profileImage };
+          } catch (error) {
+            console.error('Error processing message:', msg, error);
+            return { ...msg, profileImage: '/default-avatar.webp' };
+          }
+        })
+      );
+      
+      console.log('Processed messages with images:', messagesWithImages);
+      setMessages(messagesWithImages.reverse());
       setPage(2);
-      if (initialMessages.length < 5) setHasMore(false); // אם יש פחות מ-5, כנראה שאין עוד
+      if (initialMessages.length < 5) setHasMore(false);
     };
     
     if (recipientId && userId) {
@@ -94,14 +154,30 @@ const ChatBox: React.FC<ChatBoxProps> = ({ recipientId, userId }) => {
     }
   }, [recipientId, userId]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!message.trim()) return; // אם ההודעה ריקה, לא נשלח
     if (!chatService.isSocketConnected()) {
       console.error("Can't send: WebSocket not connected yet");
       return;
     }
     
-    const payload = { SenderId: userId, RecipientId: recipientId, MessageContent: message, userName: myName };
+    const token = localStorage.getItem("token");
+    const decoded = token ? JSON.parse(atob(token.split(".")[1])) : null;
+    const firstName = decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"] || "";
+    const lastName = decoded?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"] || "";
+    
+    // טעינת תמונת פרופיל של המשתמש השולח
+    const profileImage = await loadProfileImage(userId);
+    
+    const payload = { 
+      SenderId: userId, 
+      RecipientId: recipientId, 
+      MessageContent: message, 
+      userName: myName,
+      firstName,
+      lastName,
+      profileImage
+    };
 
     // שליחה לשרת (אין עדכון מיידי של ה־state פה)
     chatService.sendMessage(payload);
@@ -118,14 +194,35 @@ const ChatBox: React.FC<ChatBoxProps> = ({ recipientId, userId }) => {
   };
 
   const loadMoreMessages = async () => {
-    setIsLoadingMore(true); // מתחילים טעינה
+    setIsLoadingMore(true);
+    console.log('Loading more messages, current page:', page);
     const oldMessages = await chatService.fetchOldMessages(userId, recipientId, page);
-    if (oldMessages.length === 0) {
+    console.log('Raw old messages:', oldMessages);
+
+    if (!oldMessages || oldMessages.length === 0) {
+      console.log('No more messages to load');
       setHasMore(false);
-      setIsLoadingMore(false); // עצירת טעינה
+      setIsLoadingMore(false);
       return;
     }
-    setMessages((prev) => [...oldMessages.reverse(), ...prev]);
+
+    // טעינת תמונות פרופיל לכל ההודעות
+    const messagesWithImages = await Promise.all(
+      oldMessages.map(async (msg) => {
+        try {
+          console.log('Processing old message:', msg);
+          const senderId = getSenderId(msg);
+          const profileImage = await loadProfileImage(senderId);
+          return { ...msg, profileImage };
+        } catch (error) {
+          console.error('Error processing old message:', msg, error);
+          return { ...msg, profileImage: '/default-avatar.webp' };
+        }
+      })
+    );
+
+    console.log('Processed old messages with images:', messagesWithImages);
+    setMessages((prev) => [...messagesWithImages.reverse(), ...prev]);
     setPage((prev) => prev + 1);
 
     // שמירה על המיקום של הגלילה
@@ -138,7 +235,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ recipientId, userId }) => {
       }, 0);
     }
 
-    setIsLoadingMore(false); // סיום טעינה
+    setIsLoadingMore(false);
   };
 
   return (
@@ -150,7 +247,17 @@ const ChatBox: React.FC<ChatBoxProps> = ({ recipientId, userId }) => {
       >
         {messages.map((msg, idx) => (
           <div key={idx} className={`chat-message ${msg.userName === myName ? "my-message" : "other-message"}`}>
-            <strong>{msg.userName}:</strong> {msg.MessageContent||msg.messageContent}
+            <div className="message-sender-info">
+              <div className="user-avatar">
+                {msg.profileImage ? (
+                  <img src={msg.profileImage} alt={`${msg.firstName} ${msg.lastName}`} />
+                ) : (
+                  `${msg.firstName?.[0]}${msg.lastName?.[0]}`
+                )}
+              </div>
+              <span className="sender-name">{msg.userName}</span>
+            </div>
+            <div className="message-content">{msg.MessageContent}</div>
           </div>
         ))}
         {isLoadingMore && (
