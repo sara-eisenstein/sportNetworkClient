@@ -79,6 +79,11 @@
     transition: all 0.2s ease;
     position: relative;
     gap: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: inherit;
 }
 
 .nav-link::after {
@@ -103,51 +108,34 @@
 
 .nav-link.login-link,
 .nav-link.register-link,
-.logout-button {
-    height: 36px;
-    padding: 4px 14px;
-    border-radius: 4px;
-    font-size: 0.9rem;
-    line-height: 1;
+.nav-link.logout-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: inherit;
+    color: #fff;
+    padding: 0 16px;
+    height: 100%;
     display: flex;
     align-items: center;
-    justify-content: center;
-    margin: auto 0;
+    text-decoration: none;
     font-weight: 500;
     transition: all 0.2s ease;
 }
 
-.login-link {
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    background-color: transparent;
-}
-
-.register-link {
-    background-color: #fff;
-    color: #0077b6;
-    border: 1px solid transparent;
-}
-
-.login-link:hover {
+.nav-link.login-link:hover,
+.nav-link.register-link:hover,
+.nav-link.logout-button:hover {
     background-color: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.8);
 }
 
-.register-link:hover {
-    background-color: rgba(255, 255, 255, 0.9);
-    border-color: rgba(255, 255, 255, 0.8);
-}
-
-.logout-button {
-    background-color: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.4);
+.nav-link.logout-button {
     color: #fff;
-    cursor: pointer;
 }
 
-.logout-button:hover {
+.nav-link.logout-button:hover {
     background-color: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.8);
 }
 
 .profile-image {

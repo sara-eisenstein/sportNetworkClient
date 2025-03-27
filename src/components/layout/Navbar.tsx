@@ -39,75 +39,78 @@ const Navbar: React.FC = () => {
         setMenuOpen(!menuOpen);
     };
 
+    const handleNavigation = (path: string) => {
+        localStorage.setItem('lastActiveTab', path);
+        navigate(path);
+        setMenuOpen(false);
+    };
+
     const isActive = (path: string) => {
         return location.pathname === path;
     };
 
+    // Restore last active tab on component mount
+    useEffect(() => {
+        const lastActiveTab = localStorage.getItem('lastActiveTab');
+        if (lastActiveTab && location.pathname === '/') {
+            navigate(lastActiveTab);
+        }
+    }, [navigate, location.pathname]);
+
     return (
         <nav className="navbar">
             <div className="navbar-container">
-                <Link to="/" className="navbar-logo">
+                <Link to="/" className="navbar-logo" onClick={() => handleNavigation('/')}>
                     <span className="logo-text">FitSocial</span>
                 </Link>
                 
                 <ul className={`nav-menu ${menuOpen ? 'active' : ''}`}>
                     <li className="nav-item">
-                        <Link 
-                            to="/" 
+                        <button 
                             className={`nav-link ${isActive('/') ? 'active' : ''}`}
-                            onClick={() => setMenuOpen(false)}
+                            onClick={() => handleNavigation('/')}
                         >
                             דף הבית
-                        </Link>
+                        </button>
                     </li>
                     <li className="nav-item">
-                        <Link 
-                            to="/profiles" 
+                        <button 
                             className={`nav-link ${isActive('/profiles') ? 'active' : ''}`}
-                            onClick={() => setMenuOpen(false)}
+                            onClick={() => handleNavigation('/profiles')}
                         >
                             משתמשים
-                        </Link>
+                        </button>
                     </li>
                     <li className="nav-item">
-                        <Link 
-                            to="/challenges" 
+                        <button 
                             className={`nav-link ${isActive('/challenges') ? 'active' : ''}`}
-                            onClick={() => setMenuOpen(false)}
+                            onClick={() => handleNavigation('/challenges')}
                         >
                             אתגרים
-                        </Link>
+                        </button>
+                    </li>
+                    <li className="nav-item">
+                        <button 
+                            className={`nav-link ${isActive('/chat') ? 'active' : ''}`}
+                            onClick={() => handleNavigation('/chat')}
+                        >
+                            צ'אט
+                        </button>
                     </li>
                     {currentUser ? (
                         <>
                             <li className="nav-item">
-                                <Link 
-                                    to="/chat" 
-                                    className={`nav-link ${isActive('/chat') ? 'active' : ''}`}
-                                    onClick={() => setMenuOpen(false)}
-                                >
-                                    צ'אט
-                                </Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link 
-                                    to="/profile" 
+                                <button 
                                     className={`nav-link profile-link ${isActive('/profile') ? 'active' : ''}`}
-                                    onClick={() => setMenuOpen(false)}
+                                    onClick={() => handleNavigation('/profile')}
                                 >
                                     <img 
-                                        src={profileImageUrl}
-                                        alt={`${currentUser.firstName} ${currentUser.lastName}`}
+                                        src={profileImageUrl} 
+                                        alt="Profile" 
                                         className="profile-image"
-                                        onError={(e) => {
-                                            const target = e.target as HTMLImageElement;
-                                            if (target.src !== '/default-avatar.webp') {
-                                                target.src = '/default-avatar.webp';
-                                            }
-                                        }}
                                     />
-                                    <span>הפרופיל שלי</span>
-                                </Link>
+                                    פרופיל
+                                </button>
                             </li>
                             <li className="nav-item">
                                 <button 
@@ -124,22 +127,20 @@ const Navbar: React.FC = () => {
                     ) : (
                         <>
                             <li className="nav-item">
-                                <Link 
-                                    to="/login" 
+                                <button 
                                     className="nav-link login-link"
-                                    onClick={() => setMenuOpen(false)}
+                                    onClick={() => handleNavigation('/login')}
                                 >
                                     התחבר
-                                </Link>
+                                </button>
                             </li>
                             <li className="nav-item">
-                                <Link 
-                                    to="/register" 
+                                <button 
                                     className="nav-link register-link"
-                                    onClick={() => setMenuOpen(false)}
+                                    onClick={() => handleNavigation('/register')}
                                 >
                                     הרשמה
-                                </Link>
+                                </button>
                             </li>
                         </>
                     )}
