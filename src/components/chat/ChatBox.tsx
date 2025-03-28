@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import chatService from "../../services/chatService";
 import { getUserImage } from "../../services/userService";
 
@@ -29,6 +29,8 @@ const ChatBox: React.FC<ChatBoxProps> = ({ recipientId, userId, recipientName })
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const messagesContainerRef = React.useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
 
   // פונקציה לטעינת תמונת פרופיל
   const loadProfileImage = async (userId: number | undefined): Promise<string> => {
@@ -53,6 +55,10 @@ const ChatBox: React.FC<ChatBoxProps> = ({ recipientId, userId, recipientName })
   const getMessageContent = (msg: Message): string => {
     return msg.MessageContent || msg.messageContent || '';
   };
+  useEffect(() => {
+    // כשמגיעה הודעה חדשה, גוללים לתחתית הצ'אט
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]); // מאזין לשינוי במערך ההודעות
 
   useEffect(() => {
     // חיפוש שם המשתמש מתוך הטוקן
@@ -244,6 +250,8 @@ const ChatBox: React.FC<ChatBoxProps> = ({ recipientId, userId, recipientName })
     }
   }, [recipientId, userId]);
 
+  
+
   const handleSend = async () => {
     if (!message.trim()) return;
     if (!chatService.isSocketConnected()) {
@@ -390,6 +398,8 @@ const ChatBox: React.FC<ChatBoxProps> = ({ recipientId, userId, recipientName })
                 <span className="sender-name">{displayName}</span>
               </div>
               <div className="message-content">{getMessageContent(msg)}</div>
+              <div ref={messagesEndRef} />
+
             </div>
           );
         })}
