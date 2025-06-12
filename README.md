@@ -45,8 +45,9 @@
 
 ### 🖥 התקנה:
 
-1. `git clone https://github.com/sara-eisenstein/SportNetwork.git`
-2. התקנת ה-Client:
+1. `git clone https://github.com/sara-eisenstein/sportNetworkClient.git`
+2.  `git clone https://github.com/sara-eisenstein/SportNetwork.git`
+3. התקנת ה-Client:
    ```bash
    cd SportNetworkClient
    npm install
